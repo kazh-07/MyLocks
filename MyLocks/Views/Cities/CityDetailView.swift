@@ -34,7 +34,7 @@ struct CityDetailView: View {
             
             // Content layer - respects safe area
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: AppSpacing.xxl) {
                     // City title and info
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
                         HStack {
@@ -93,7 +93,6 @@ struct CityDetailView: View {
                             }
                         }
                     }
-                    .padding(.bottom, AppSpacing.lg)
                     
                     // City image - Wrapped in container to prevent layout issues - Wrapped in container to prevent layout issues
                     ZStack {
@@ -157,8 +156,8 @@ struct CityDetailView: View {
                     if !city.visits.isEmpty {
                         VStack(alignment: .leading, spacing: 0) {
                             let sortedVisits = city.visits.sorted { 
-                                guard let date1 = $0.date, let date2 = $1.date else {
-                                    return $0.date != nil // Visits with dates come before those without
+                                guard let date1 = $0.displayDate, let date2 = $1.displayDate else {
+                                    return $0.displayDate != nil // Visits with dates come before those without
                                 }
                                 return date1 > date2
                             }
@@ -177,53 +176,20 @@ struct CityDetailView: View {
                         // Divider between visit records and signature dishes
                         Divider()
                             .background(AppColors.tertiaryLabel.opacity(0.3))
-                            .padding(.bottom, AppSpacing.xl)
                     }
                     
-                    // Visited Places section - places from visits
-                    if !city.visitedPlaces.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("Visited Places")
-                                .font(RestaurantDetailStyles.sectionHeader)
-                                .foregroundStyle(AppColors.primaryText)
-                            
-                            // Horizontal scrolling places
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: AppSpacing.lg) {
-                                    ForEach(city.visitedPlaces, id: \.self) { place in
-                                        DishPill(dishName: place)
-                                            .padding(.vertical, AppSpacing.lg)
-                                    }
-                                }
-                                .padding(.horizontal, AppSpacing.md)
-                            }
-                        }
-                        .padding(.bottom, AppSpacing.lg)
-                    }
-                    
-                    // Wishlist Places section - places you want to visit
-                    if city.isVisited || city.isWishlisted {
-                        VStack(alignment: .leading, spacing: 0) {
-                            HStack {
-                                Text("Places to Visit")
+                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                        // Visited Places section - places from visits
+                        if !city.visitedPlaces.isEmpty {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Visited Places")
                                     .font(RestaurantDetailStyles.sectionHeader)
                                     .foregroundStyle(AppColors.primaryText)
                                 
-                                Spacer()
-                                
-                                Button(action: {
-                                    showingAddPlaces = true
-                                }) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(AppFonts.icon)
-                                        .foregroundStyle(AppColors.accent)
-                                }
-                            }
-                            
-                            if !city.wishlistPlaces.isEmpty {
+                                // Horizontal scrolling places
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: AppSpacing.lg) {
-                                        ForEach(city.wishlistPlaces, id: \.self) { place in
+                                        ForEach(city.visitedPlaces, id: \.self) { place in
                                             DishPill(dishName: place)
                                                 .padding(.vertical, AppSpacing.lg)
                                         }
@@ -232,7 +198,39 @@ struct CityDetailView: View {
                                 }
                             }
                         }
-                        .padding(.bottom, AppSpacing.xl)
+                        
+                        // Wishlist Places section - places you want to visit
+                        if city.isVisited || city.isWishlisted {
+                            VStack(alignment: .leading, spacing: 0) {
+                                HStack {
+                                    Text("Places to Visit")
+                                        .font(RestaurantDetailStyles.sectionHeader)
+                                        .foregroundStyle(AppColors.primaryText)
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        showingAddPlaces = true
+                                    }) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(AppFonts.icon)
+                                            .foregroundStyle(AppColors.accent)
+                                    }
+                                }
+                                
+                                if !city.wishlistPlaces.isEmpty {
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: AppSpacing.lg) {
+                                            ForEach(city.wishlistPlaces, id: \.self) { place in
+                                                DishPill(dishName: place)
+                                                    .padding(.vertical, AppSpacing.lg)
+                                            }
+                                        }
+                                        .padding(.horizontal, AppSpacing.md)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -10,22 +10,41 @@ struct HomeView: View {
     @State private var showingCityDetail = false
     @State private var showingRestaurantDetail = false
     @State private var showingSettings = false
+    @State private var searchText = ""
+    @State private var isSearching = false
     @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     
+    // REFACTORED: Using Searchable protocol extension
     private var visitedCities: [City] {
-        allCities.filter { $0.isVisited }
+        let visited = allCities.filter { $0.isVisited }
+        // Sort by most recent visit
+        let sorted = City.sortedByRecentVisit(visited)
+        guard isSearching && selectedTab == "Cities" else { return sorted }
+        return sorted.filtered(by: searchText, language: selectedLanguage)
     }
     
     private var wishlistedCities: [City] {
-        allCities.filter { $0.wishlistStatus == .wishlisted }
+        let wishlisted = allCities.filter { $0.wishlistStatus == .wishlisted }
+        // Sort by priority, then by date added
+        let sorted = City.sortedByWishlistPriority(wishlisted)
+        guard isSearching && selectedTab == "Cities" else { return sorted }
+        return sorted.filtered(by: searchText, language: selectedLanguage)
     }
     
     private var visitedRestaurants: [MichelinRestaurant] {
-        allRestaurants.filter { $0.isVisited }
+        let visited = allRestaurants.filter { $0.isVisited }
+        // Sort by most recent visit
+        let sorted = MichelinRestaurant.sortedByRecentVisit(visited)
+        guard isSearching && selectedTab == "Michelin" else { return sorted }
+        return sorted.filtered(by: searchText, language: selectedLanguage)
     }
     
     private var wishlistedRestaurants: [MichelinRestaurant] {
-        allRestaurants.filter { $0.wishlistStatus == .wishlisted }
+        let wishlisted = allRestaurants.filter { $0.wishlistStatus == .wishlisted }
+        // Sort by priority, then by date added
+        let sorted = MichelinRestaurant.sortedByWishlistPriority(wishlisted)
+        guard isSearching && selectedTab == "Michelin" else { return sorted }
+        return sorted.filtered(by: searchText, language: selectedLanguage)
     }
     
     var body: some View {
@@ -50,27 +69,45 @@ struct HomeView: View {
                     }
                     .safeAreaInset(edge: .top, spacing: 0) {
                         VStack(spacing: 0) {
-                            // Header with settings and search buttons
+                            // REFACTORED: Header with settings and search buttons
                             HStack {
-                                // Settings button
+                                // Settings button or cancel button when searching
                                 Button(action: {
-                                    showingSettings = true
+                                    if isSearching {
+                                        isSearching = false
+                                        searchText = ""
+                                    } else {
+                                        showingSettings = true
+                                    }
                                 }) {
-                                    Image(systemName: "gearshape")
+                                    Image(systemName: isSearching ? "xmark" : "gearshape")
                                         .font(AppFonts.icon)
                                         .foregroundStyle(AppColors.icon)
                                 }
                                 
                                 Spacer()
                                 
-                                Button(action: {}) {
+                                Button(action: {
+                                    isSearching.toggle()
+                                    if !isSearching {
+                                        searchText = ""
+                                    }
+                                }) {
                                     Image(systemName: "magnifyingglass")
                                         .font(AppFonts.icon)
                                         .foregroundStyle(AppColors.icon)
                                 }
                             }
                             .padding(.horizontal, AppSpacing.pageHorizontal)
-                            .padding(.top, AppSpacing.pageTop)
+                            .padding(.vertical, AppSpacing.pageTop)
+                            
+                            // REFACTORED: Using SearchBar component
+                            if isSearching {
+                                SearchBar(
+                                    placeholder: selectedTab == "Cities" ? "Search cities" : "Search restaurants",
+                                    text: $searchText
+                                )
+                            }
                             
                             // Title
                             VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -110,6 +147,7 @@ struct HomeView: View {
                 .navigationDestination(isPresented: $showingSettings) {
                     SettingsView()
                 }
+                .animation(.easeInOut(duration: 0.2), value: isSearching)
             }
         }
     }

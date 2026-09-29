@@ -3,6 +3,7 @@ import SwiftData
 
 struct MichelinView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     @Query(sort: \MichelinRestaurant.createdAt, order: .reverse) 
     private var allRestaurants: [MichelinRestaurant]
     
@@ -10,6 +11,8 @@ struct MichelinView: View {
     @State private var selectedFilter: MichelinFilter = .all
     @State private var selectedRestaurant: MichelinRestaurant?
     @State private var showingRestaurantDetail = false
+    @State private var searchText = ""
+    @State private var isSearching = false
     
     enum MichelinFilter: String, CaseIterable {
         case all = "All"
@@ -36,15 +39,27 @@ struct MichelinView: View {
     
     private var tabFilteredRestaurants: [MichelinRestaurant] {
         guard let tab = selectedTab else {
-            // "All" tab selected
+            // "All" tab selected - no specific sorting
             return allRestaurants
         }
         
-        return allRestaurants.filter { $0.wishlistStatus == tab }
+        let filtered = allRestaurants.filter { $0.wishlistStatus == tab }
+        
+        // Sort based on status
+        switch tab {
+        case .visited:
+            return MichelinRestaurant.sortedByRecentVisit(filtered)
+        case .wishlisted:
+            return MichelinRestaurant.sortedByWishlistPriority(filtered)
+        case .notVisited:
+            return filtered // Keep default order for not visited
+        }
     }
     
+    // REFACTORED: Using Searchable protocol extension
     private var filteredRestaurants: [MichelinRestaurant] {
-        tabFilteredRestaurants.filter { selectedFilter.matches($0) }
+        let baseFiltered = tabFilteredRestaurants.filter { selectedFilter.matches($0) }
+        return baseFiltered.filtered(by: searchText, language: selectedLanguage)
     }
     
     var body: some View {
@@ -54,28 +69,46 @@ struct MichelinView: View {
                     .ignoresSafeArea()
                 
                 VStack(alignment: .leading, spacing: 0) {
-                    // Header
+                    // REFACTORED: Header with search functionality
                     HStack {
-                        Button(action: {}) {
-                            Image(systemName: "plus")
+                        Button(action: {
+                            if isSearching {
+                                // Cancel search
+                                isSearching = false
+                                searchText = ""
+                            }
+                            // Plus button disabled when searching
+                        }) {
+                            Image(systemName: isSearching ? "xmark" : "plus")
                                 .font(AppFonts.icon)
                                 .foregroundStyle(AppColors.icon)
                         }
+                        .disabled(isSearching && searchText.isEmpty)
                         
                         Spacer()
                         
-                        Button(action: {}) {
+                        Button(action: {
+                            isSearching.toggle()
+                            if !isSearching {
+                                searchText = ""
+                            }
+                        }) {
                             Image(systemName: "magnifyingglass")
                                 .font(AppFonts.icon)
                                 .foregroundStyle(AppColors.icon)
                         }
                     }
                     .padding(.horizontal, AppSpacing.pageHorizontal)
-                    .padding(.top, AppSpacing.pageTop)
+                    .padding(.vertical, AppSpacing.pageTop)
+                    
+                    // REFACTORED: Using SearchBar component
+                    if isSearching {
+                        SearchBar(placeholder: "Search restaurants", text: $searchText)
+                    }
                     
                     // Title
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Michelin")
+                        Text(isSearching ? "Search Results" : "Michelin")
                             .font(AppFonts.title)
                             .foregroundStyle(AppColors.titleText)
                         
@@ -134,6 +167,11 @@ struct MichelinView: View {
                         .padding(.horizontal, AppSpacing.pageHorizontal)
                         .padding(.top, AppSpacing.sectionBottom)
                         .padding(.bottom, AppSpacing.contentBottom)
+                        
+                        // REFACTORED: Using EmptySearchState component
+                        if filteredRestaurants.isEmpty && isSearching && !searchText.isEmpty {
+                            EmptySearchState(itemType: "restaurants")
+                        }
                     }
                 }
                 .navigationDestination(isPresented: $showingRestaurantDetail) {
@@ -141,6 +179,7 @@ struct MichelinView: View {
                         RestaurantDetailView(restaurant: restaurant)
                     }
                 }
+                .animation(.easeInOut(duration: 0.2), value: isSearching)
             }
         }
     }

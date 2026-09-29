@@ -14,6 +14,7 @@
 		A7E28CB030681B290018743D /* String+NilIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */; };
 		A7FCD3EE306B0A29001E5DD2 /* Transportation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */; };
 		A7FCD450306B4BDB001E5DD2 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = A7FCD44F306B4BDB001E5DD2 /* .gitignore */; };
+		A7FCD458306B722B001E5DD2 /* CitySortable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD457306B722B001E5DD2 /* CitySortable.swift */; };
 		SF01 /* MyLocksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1 /* MyLocksApp.swift */; };
 		SF02 /* Country.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2 /* Country.swift */; };
 		SF04 /* City.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4 /* City.swift */; };
@@ -32,6 +33,7 @@
 		A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+NilIfEmpty.swift"; sourceTree = "<group>"; };
 		A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transportation.swift; sourceTree = "<group>"; };
 		A7FCD44F306B4BDB001E5DD2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		A7FCD457306B722B001E5DD2 /* CitySortable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitySortable.swift; sourceTree = "<group>"; };
 		B1 /* MyLocksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyLocksApp.swift; sourceTree = "<group>"; };
 		B10 /* ModelContainerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerProvider.swift; sourceTree = "<group>"; };
 		B16 /* AddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 				B6 /* MichelinRestaurant.swift */,
 				B8 /* Event.swift */,
 				A7629D033068B0A700BE3183 /* WishlistStatus.swift */,
+				A7FCD457306B722B001E5DD2 /* CitySortable.swift */,
 				B10 /* ModelContainerProvider.swift */,
 				A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */,
 				A730235A3069C471005DFC18 /* DatePrecision.swift */,
@@ -225,6 +228,7 @@
 				SF02 /* Country.swift in Sources */,
 				SF04 /* City.swift in Sources */,
 				A730235B3069C472005DFC18 /* DatePrecision.swift in Sources */,
+				A7FCD458306B722B001E5DD2 /* CitySortable.swift in Sources */,
 				A7E28CB030681B290018743D /* String+NilIfEmpty.swift in Sources */,
 				SF06 /* MichelinRestaurant.swift in Sources */,
 				SF08 /* Event.swift in Sources */,

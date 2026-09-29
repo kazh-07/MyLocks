@@ -31,8 +31,6 @@ final class Transportation {
     var precision: DatePrecision
     var date: Date?
     var approxYear: Int?
-    var approxYearStart: Int?
-    var approxYearEnd: Int?
     
     // Route information
     var fromLocation: String?
@@ -50,8 +48,6 @@ final class Transportation {
         precision: DatePrecision = .exact,
         date: Date? = nil,
         approxYear: Int? = nil,
-        approxYearStart: Int? = nil,
-        approxYearEnd: Int? = nil,
         fromLocation: String? = nil,
         toLocation: String? = nil,
         carrier: String? = nil,
@@ -63,8 +59,6 @@ final class Transportation {
         self.precision = precision
         self.date = date
         self.approxYear = approxYear
-        self.approxYearStart = approxYearStart
-        self.approxYearEnd = approxYearEnd
         self.fromLocation = fromLocation
         self.toLocation = toLocation
         self.carrier = carrier
@@ -81,22 +75,11 @@ final class Transportation {
             formatter.timeStyle = .none
             return formatter.string(from: date ?? Date())
             
-        case .month:
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MMMM yyyy"
-            return formatter.string(from: date ?? Date())
-            
         case .year:
             if let year = approxYear {
                 return String(year)
             }
             return "Unknown year"
-            
-        case .yearRange:
-            if let start = approxYearStart, let end = approxYearEnd {
-                return "\(start)–\(end)"
-            }
-            return "Unknown range"
         }
     }
     

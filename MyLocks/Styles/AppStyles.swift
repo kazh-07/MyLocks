@@ -24,7 +24,7 @@ enum AppColors {
     // Semantic colors
     static let icon = Color(red: 0.4, green: 0.4, blue: 0.45)
     static let iconLight = Color(red: 0.7, green: 0.7, blue: 0.72)
-    static let accent = Color(red: 0.3, green: 0.65, blue: 0.5) // Teal - used for markers, highlights
+    static let accent = Color(red: 0.1, green: 0.1, blue: 0.1) // Teal - used for markers, highlights
     static let emptyState = Color(red: 0.75, green: 0.77, blue: 0.8) // Light gray for empty states
     static let selected = Color.white
     static let selectedBackground = Color(red: 0.15, green: 0.18, blue: 0.25)
@@ -72,7 +72,7 @@ enum AppSpacing {
     static let md: CGFloat = 8
     static let lg: CGFloat = 12
     static let xl: CGFloat = 16
-    static let xxl: CGFloat = 24
+    static let xxl: CGFloat = 20
     static let xxxl: CGFloat = 32
     
     // Page layout

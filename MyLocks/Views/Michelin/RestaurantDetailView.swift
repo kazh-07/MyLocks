@@ -73,7 +73,7 @@ struct RestaurantDetailView: View {
             
             // Content layer - respects safe area
             ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: AppSpacing.xxl) {
                     // Restaurant image
                     if let thumbnailURL = restaurant.thumbnailURL, let url = URL(string: thumbnailURL) {
                         AsyncImage(url: url) { phase in
@@ -107,7 +107,6 @@ struct RestaurantDetailView: View {
                                     .frame(height: RestaurantDetailStyles.imageHeight)
                             }
                         }
-                        .padding(.bottom, AppSpacing.lg)
                     } else {
                         // Placeholder when no thumbnail URL is available
                         RoundedRectangle(cornerRadius: RestaurantDetailStyles.imageCornerRadius)
@@ -118,41 +117,42 @@ struct RestaurantDetailView: View {
                                     .font(AppFonts.iconExtraLarge)
                                     .foregroundStyle(AppColors.iconLight)
                             )
-                            .padding(.bottom, AppSpacing.lg)
                     }
                     
-                    // Restaurant name and visit rating
-                    HStack(alignment: .top) {
-                        Text(restaurant.localizedName(language: selectedLanguage))
-                            .font(RestaurantDetailStyles.restaurantName)
-                            .foregroundStyle(AppColors.titleText)
-                        
-                        Spacer()
-                        
-                        // Visit rating number
-                        if let rating = mostRecentVisitRating {
-                            Text("\(rating)")
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        // Restaurant name and visit rating
+                        HStack(alignment: .top) {
+                            Text(restaurant.localizedName(language: selectedLanguage))
                                 .font(RestaurantDetailStyles.restaurantName)
                                 .foregroundStyle(AppColors.titleText)
+                            
+                            Spacer()
+                            
+                            // Visit rating number
+                            if let rating = mostRecentVisitRating {
+                                Text("\(rating)")
+                                    .font(RestaurantDetailStyles.restaurantName)
+                                    .foregroundStyle(AppColors.titleText)
+                            }
                         }
+                        
+                        // Location
+                        if let city = restaurant.city, let country = restaurant.country {
+                            Text("\(city.localizedName(language: selectedLanguage)), \(country.localizedName(language: selectedLanguage))")
+                                .font(RestaurantDetailStyles.locationText)
+                                .foregroundStyle(AppColors.quaternaryText)
+                        }
+                        
+                        // Cuisine type
+                        if let cuisine = restaurant.localizedCuisine(language: selectedLanguage) {
+                            Text(cuisine)
+                                .font(RestaurantDetailStyles.locationText)
+                                .foregroundStyle(AppColors.quaternaryText)
+                        }
+                        
+                        // Michelin stars
+                        MichelinStar(michelinLevel: restaurant.michelinLevel, size: .large)
                     }
-                    
-                    // Location
-                    if let city = restaurant.city, let country = restaurant.country {
-                        Text("\(city.localizedName(language: selectedLanguage)), \(country.localizedName(language: selectedLanguage))")
-                            .font(RestaurantDetailStyles.locationText)
-                            .foregroundStyle(AppColors.quaternaryText)
-                    }
-                    
-                    // Cuisine type
-                    if let cuisine = restaurant.localizedCuisine(language: selectedLanguage) {
-                        Text(cuisine)
-                            .font(RestaurantDetailStyles.locationText)
-                            .foregroundStyle(AppColors.quaternaryText)
-                    }
-                    
-                    // Michelin stars
-                    MichelinStar(michelinLevel: restaurant.michelinLevel, size: .large)
                     
                     // Visit record section
                     if !visitDates.isEmpty {
@@ -173,7 +173,6 @@ struct RestaurantDetailView: View {
                         // Divider between visit records and signature dishes
                         Divider()
                             .background(AppColors.tertiaryLabel.opacity(0.3))
-                            .padding(.bottom, AppSpacing.xl)
                     }
                     
                     // Signature dishes section
@@ -197,7 +196,6 @@ struct RestaurantDetailView: View {
                         .padding(.bottom, AppSpacing.lg)
                     }
                 }
-                .padding(.bottom, AppSpacing.contentBottom)
                 .padding(.horizontal, AppSpacing.pageHorizontal)
             }
             .safeAreaInset(edge: .top, spacing: 0) {

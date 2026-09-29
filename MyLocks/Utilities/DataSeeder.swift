@@ -361,50 +361,156 @@ enum DataSeeder {
         }
         
         // === CITY VISITS ===
-        // Shanghai - visited multiple times
-        context.insert(CityVisit(
-            date: Date().addingTimeInterval(-86400 * 365),
-            note: "First time in Shanghai! Amazing food scene, loved the Bund area and the night skyline.",
+        // Shanghai - visited multiple times with different date precisions and ranges
+        
+        // Visit 1: Year range (2019-2020) - Demonstrates multi-year stay
+        let shanghaiVisit1 = CityVisit(
+            startYear: 2019,
+            endYear: 2020,
+            note: "First extended stay in Shanghai! Amazing food scene, loved the Bund area and the night skyline.",
             places: ["The Bund", "Yu Garden", "Shanghai Tower", "Nanjing Road"],
             city: shanghai
-        ))
+        )
+        context.insert(shanghaiVisit1)
         
-        context.insert(CityVisit(
-            date: Date().addingTimeInterval(-86400 * 200),
+        // Add transportation for Shanghai Visit 1 - arrival by flight
+        let shanghaiArrivalFlight = Transportation(
+            mode: .flight,
+            precision: .exact,
+            date: Calendar.current.date(from: DateComponents(year: 2019, month: 1, day: 15)),
+            fromLocation: "San Francisco (SFO)",
+            toLocation: "Shanghai Pudong (PVG)",
+            carrier: "United Airlines",
+            identifier: "UA857",
+            cityVisit: shanghaiVisit1
+        )
+        context.insert(shanghaiArrivalFlight)
+        
+        // Visit 2: Exact date range (multi-day trip)
+        let tripStart = Date().addingTimeInterval(-86400 * 200)
+        let tripEnd = Date().addingTimeInterval(-86400 * 194)  // 6 days later
+        let shanghaiVisit2 = CityVisit(
+            startDate: tripStart,
+            endDate: tripEnd,
+            companion: "Sarah",
             note: "Back for business. Had the best xiaolongbao at Din Tai Fung. The French Concession is so charming.",
             places: ["French Concession", "Tianzifang", "Xintiandi", "People's Square"],
             city: shanghai
-        ))
+        )
+        context.insert(shanghaiVisit2)
         
-        context.insert(CityVisit(
-            date: Date().addingTimeInterval(-86400 * 60),
+        // Add transportation for Shanghai Visit 2
+        let shanghaiArrivalFlight2 = Transportation(
+            mode: .flight,
+            precision: .exact,
+            date: tripStart,
+            fromLocation: "Beijing Capital (PEK)",
+            toLocation: "Shanghai Hongqiao (SHA)",
+            carrier: "Air China",
+            identifier: "CA1835",
+            cityVisit: shanghaiVisit2
+        )
+        context.insert(shanghaiArrivalFlight2)
+        
+        // Visit 3: Recent trip (summer 2024)
+        let summer2024Start = Calendar.current.date(from: DateComponents(year: 2024, month: 7, day: 15)) ?? Date()
+        let summer2024End = Calendar.current.date(from: DateComponents(year: 2024, month: 7, day: 22)) ?? Date()
+        
+        let shanghaiVisit3 = CityVisit(
+            startDate: summer2024Start,
+            endDate: summer2024End,
+            companion: "Sarah",
             note: "Third visit! Explored more local neighborhoods. Tried authentic Shanghainese cuisine in the old town.",
             places: ["Old Town", "Jing'an Temple", "M50 Art District"],
             city: shanghai
-        ))
+        )
+        context.insert(shanghaiVisit3)
         
-        // Beijing - visited multiple times
-        context.insert(CityVisit(
-            date: Date().addingTimeInterval(-86400 * 180),
+        // Beijing - visited multiple times with different precisions
+        
+        // Visit 1: Single year (2022)
+        let beijingVisit1 = CityVisit(
+            startYear: 2022,
+            endYear: 2022,  // Same year = single year visit
             note: "Business trip, visited Great Wall. The Forbidden City is breathtaking!",
             places: ["Great Wall", "Forbidden City", "Temple of Heaven"],
             city: beijing
-        ))
+        )
+        context.insert(beijingVisit1)
         
-        context.insert(CityVisit(
-            date: Date().addingTimeInterval(-86400 * 45),
-            note: "Second visit - tried Peking duck at a famous restaurant. Walked around hutongs and loved the local vibe.",
-            places: ["Nanluoguxiang", "798 Art District", "Summer Palace", "Hutongs"],
+        // Add transportation for Beijing Visit 1 (year precision)
+        let beijingArrivalTrain = Transportation(
+            mode: .train,
+            precision: .year,
+            approxYear: 2022,
+            fromLocation: "Shanghai Hongqiao",
+            toLocation: "Beijing South",
+            carrier: "China Railway High-speed",
+            identifier: "G2",
+            cityVisit: beijingVisit1
+        )
+        context.insert(beijingArrivalTrain)
+        
+        // Visit 2: Single exact date (day trip or short visit)
+        let beijingDate = Date().addingTimeInterval(-86400 * 45)
+        let beijingVisit2 = CityVisit(
+            date: beijingDate,  // Single day convenience init
+            companion: "Work colleagues",
+            note: "Quick business meeting and tried Peking duck at a famous restaurant.",
+            places: ["Nanluoguxiang", "798 Art District"],
             city: beijing
-        ))
+        )
+        context.insert(beijingVisit2)
         
-        // Paris - visited once
-        context.insert(CityVisit(
-            date: Date().addingTimeInterval(-86400 * 90),
-            note: "Romantic getaway, amazing cafes. Visited the Louvre and walked along Seine.",
+        // Visit 3: Weekend trip (multi-day exact date range)
+        let weekendStart = Date().addingTimeInterval(-86400 * 100)
+        let weekendEnd = Date().addingTimeInterval(-86400 * 98)  // 2 days later
+        let beijingVisit3 = CityVisit(
+            startDate: weekendStart,
+            endDate: weekendEnd,
+            companion: "Friends",
+            note: "Weekend getaway! Walked around hutongs and loved the local vibe.",
+            places: ["Summer Palace", "Hutongs", "Lama Temple"],
+            city: beijing
+        )
+        context.insert(beijingVisit3)
+        
+        // Add transportation for Beijing Visit 3
+        let beijingArrivalCar = Transportation(
+            mode: .car,
+            precision: .exact,
+            date: weekendStart,
+            fromLocation: "Tianjin",
+            toLocation: "Beijing",
+            carrier: "Rental Car",
+            identifier: "Tesla Model 3",
+            cityVisit: beijingVisit3
+        )
+        context.insert(beijingArrivalCar)
+        
+        // Paris - visited once (year range spanning multiple years)
+        let parisVisit = CityVisit(
+            startYear: 2023,
+            endYear: 2024,
+            companion: "Partner",
+            note: "Romantic extended stay, amazing cafes. Visited the Louvre and walked along Seine.",
             places: ["Louvre Museum", "Eiffel Tower", "Seine River", "Montmartre", "Notre-Dame"],
             city: paris
-        ))
+        )
+        context.insert(parisVisit)
+        
+        // Add transportation for Paris visit - arrival by flight (year precision since visit spans years)
+        let parisArrivalFlight = Transportation(
+            mode: .flight,
+            precision: .year,
+            approxYear: 2023,
+            fromLocation: "New York (JFK)",
+            toLocation: "Paris Charles de Gaulle (CDG)",
+            carrier: "Air France",
+            identifier: "AF007",
+            cityVisit: parisVisit
+        )
+        context.insert(parisArrivalFlight)
         
         // === CITY WISHLISTS ===
         // Hong Kong - high priority wishlist
@@ -586,7 +692,8 @@ enum DataSeeder {
         ))
         
         print("✅ Added sample data:")
-        print("   • 3 city visits (Shanghai, Beijing, Paris)")
+        print("   • 6 city visits (Shanghai x3, Beijing x3, Paris)")
+        print("   • 5 transportation records (flights, trains, cars)")
         print("   • 3 city wishlists (Hong Kong, Tokyo, New York)")
         print("   • 2 country visits (China, France)")
         print("   • 2 country wishlists (Japan, USA)")

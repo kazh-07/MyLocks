@@ -9,10 +9,16 @@ struct AddCityVisitView: View {
     let city: City
     
     @State private var precision: DatePrecision = .exact
-    @State private var visitDate: Date = Date()
-    @State private var approxYear = Calendar.current.component(.year, from: Date())
-    @State private var approxYearStart = Calendar.current.component(.year, from: Date())
-    @State private var approxYearEnd = Calendar.current.component(.year, from: Date())
+    @State private var isRange: Bool = false  // NEW: Toggle for single vs range
+    
+    // Exact date precision
+    @State private var startDate: Date = Date()
+    @State private var endDate: Date = Date()
+    
+    // Year precision
+    @State private var startYear = Calendar.current.component(.year, from: Date())
+    @State private var endYear = Calendar.current.component(.year, from: Date())
+    
     @State private var companion: String = ""
     @State private var notes: String = ""
     @State private var places: String = ""
@@ -23,10 +29,46 @@ struct AddCityVisitView: View {
     
     private let years = Array(1950...Calendar.current.component(.year, from: Date()))
     
+    // Validation
+    private var isValidRange: Bool {
+        if !isRange { return true }
+        
+        switch precision {
+        case .exact:
+            return endDate >= startDate
+        case .year:
+            return endYear >= startYear
+        }
+    }
+    
+    private var canSave: Bool {
+        isValidRange
+    }
+    
+    // Duration preview for ranges
+    private var durationPreview: String? {
+        guard isRange else { return nil }
+        
+        switch precision {
+        case .exact:
+            let days = Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+            if days == 0 { return "Same day" }
+            if days == 1 { return "2 days, 1 night" }
+            return "\(days + 1) days, \(days) nights"
+            
+        case .year:
+            let years = endYear - startYear
+            if years == 0 { return "Same year" }
+            if years == 1 { return "2 years" }
+            return "\(years + 1) years"
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
                 Section {
+                    // Precision picker
                     Picker("Precision", selection: $precision) {
                         ForEach(DatePrecision.allCases) { p in
                             Text(p.label)
@@ -35,48 +77,87 @@ struct AddCityVisitView: View {
                     }
                     .pickerStyle(.segmented)
                     
+                    // Range toggle
+                    Toggle(isOn: $isRange) {
+                        Text(isRange ? precision.rangeLabel : "Single \(precision.label)")
+                    }
+                    
+                    // Date pickers based on precision and range
                     switch precision {
                     case .exact:
-                        DatePicker(
-                            "Visit Date",
-                            selection: $visitDate,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.compact)
-                    case .month:
-                        DatePicker(
-                            "Month",
-                            selection: $visitDate,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.compact)
+                        if isRange {
+                            DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .onChange(of: startDate) { _, newValue in
+                                    if endDate < newValue { endDate = newValue }
+                                }
+                            
+                            DatePicker("End Date", selection: $endDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .onChange(of: endDate) { _, newValue in
+                                    if newValue < startDate { startDate = newValue }
+                                }
+                            
+                            // Duration preview
+                            if let duration = durationPreview {
+                                Text(duration)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            DatePicker("Visit Date", selection: $startDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                        }
+                        
                     case .year:
-                        Picker("Year", selection: $approxYear) {
-                            ForEach(years.reversed(), id: \.self) { 
-                                Text(String($0))
-                                    .tag($0) 
+                        if isRange {
+                            Picker("Start Year", selection: $startYear) {
+                                ForEach(years.reversed(), id: \.self) {
+                                    Text(String($0)).tag($0)
+                                }
                             }
-                        }
-                        .pickerStyle(.menu)
-                    case .yearRange:
-                        Picker("From year", selection: $approxYearStart) {
-                            ForEach(years.reversed(), id: \.self) { 
-                                Text(String($0))
-                                    .tag($0) 
+                            .pickerStyle(.menu)
+                            .onChange(of: startYear) { _, newValue in
+                                if endYear < newValue { endYear = newValue }
                             }
-                        }
-                        .pickerStyle(.menu)
-                        Picker("To year", selection: $approxYearEnd) {
-                            ForEach(years.reversed(), id: \.self) { 
-                                Text(String($0))
-                                    .tag($0) 
+                            
+                            Picker("End Year", selection: $endYear) {
+                                ForEach(years.reversed(), id: \.self) {
+                                    Text(String($0)).tag($0)
+                                }
                             }
+                            .pickerStyle(.menu)
+                            .onChange(of: endYear) { _, newValue in
+                                if newValue < startYear { startYear = newValue }
+                            }
+                            
+                            // Preview
+                            if startYear == endYear {
+                                Text("Single year: \(startYear)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Range: \(startYear)–\(endYear) (\(endYear - startYear + 1) years)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            Picker("Year", selection: $startYear) {
+                                ForEach(years.reversed(), id: \.self) {
+                                    Text(String($0)).tag($0)
+                                }
+                            }
+                            .pickerStyle(.menu)
                         }
-                        .pickerStyle(.menu)
                     }
                 } header: {
                     Text("When did you visit?")
                         .textCase(nil)
+                } footer: {
+                    if isRange {
+                        Text("Select the \(precision.label.lowercased()) range for your visit")
+                            .font(.caption)
+                    }
                 }
                 .listRowInsets(AddVisitStyles.rowInsets)
                 
@@ -163,6 +244,7 @@ struct AddCityVisitView: View {
                         saveVisit()
                     }
                     .fontWeight(.semibold)
+                    .disabled(!canSave)
                 }
             }
         }
@@ -175,18 +257,40 @@ struct AddCityVisitView: View {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
         
-        // Create new visit with appropriate date precision
-        let newVisit = CityVisit(
-            datePrecision: precision,
-            date: (precision == .exact || precision == .month) ? visitDate : nil,
-            approxYear: precision == .year ? approxYear : nil,
-            approxYearStart: precision == .yearRange ? approxYearStart : nil,
-            approxYearEnd: precision == .yearRange ? approxYearEnd : nil,
-            companion: companion.isEmpty ? nil : companion,
-            note: notes.isEmpty ? nil : notes,
-            places: placesArray.isEmpty ? nil : placesArray,
-            city: city
-        )
+        // Create new visit based on precision and range settings
+        let newVisit: CityVisit
+        
+        switch precision {
+        case .exact:
+            if isRange {
+                newVisit = CityVisit(
+                    startDate: startDate,
+                    endDate: endDate,
+                    companion: companion.isEmpty ? nil : companion,
+                    note: notes.isEmpty ? nil : notes,
+                    places: placesArray.isEmpty ? nil : placesArray,
+                    city: city
+                )
+            } else {
+                newVisit = CityVisit(
+                    date: startDate,
+                    companion: companion.isEmpty ? nil : companion,
+                    note: notes.isEmpty ? nil : notes,
+                    places: placesArray.isEmpty ? nil : placesArray,
+                    city: city
+                )
+            }
+            
+        case .year:
+            newVisit = CityVisit(
+                startYear: startYear,
+                endYear: isRange ? endYear : startYear,
+                companion: companion.isEmpty ? nil : companion,
+                note: notes.isEmpty ? nil : notes,
+                places: placesArray.isEmpty ? nil : placesArray,
+                city: city
+            )
+        }
         
         // Insert into context
         modelContext.insert(newVisit)

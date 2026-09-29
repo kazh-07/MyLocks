@@ -5,14 +5,10 @@ protocol VisitDisplayable {
     var displayDate: Date? { get }
     var note: String? { get }
     var companion: String? { get }
-    var rating: Int? { get }
 }
 
 /// Extend CityVisit to conform to VisitDisplayable
-/// CityVisit doesn't have rating, so we provide nil default
-extension CityVisit: VisitDisplayable {
-    var rating: Int? { nil }
-}
+extension CityVisit: VisitDisplayable { }
 
 /// Extend RestaurantVisit to conform to VisitDisplayable
 /// RestaurantVisit has a 'date' property, so we map it to 'displayDate'
@@ -47,19 +43,10 @@ struct VisitRecord<T: VisitDisplayable>: View {
         return formatter.string(from: displayDate)
     }
     
-    private var visitNumberText: String {
-        switch visitIndex {
-        case 1: return "1st visit"
-        case 2: return "2nd visit"
-        case 3: return "3rd visit"
-        default: return "\(visitIndex)th visit"
-        }
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                // Header: Visit date or visit number
+                // Header: Visit date
                 HStack {
                     Text(headerText)
                         .font(CityDetailStyles.header)
@@ -67,10 +54,30 @@ struct VisitRecord<T: VisitDisplayable>: View {
                     
                     Spacer()
                     
-                    // Show visit number as secondary info
-                    Text(visitNumberText)
-                        .font(CityDetailStyles.body)
-                        .foregroundStyle(AppColors.tertiaryText)
+                    // City-specific: Show transportation method(s)
+                    if let cityVisit = visit as? CityVisit,
+                       let transportations = cityVisit.transportations,
+                       !transportations.isEmpty {
+                        HStack(spacing: AppSpacing.xs) {
+                            ForEach(transportations, id: \.id) { transport in
+                                Image(systemName: transport.mode.systemImage)
+                                    .font(AppFonts.iconSmall)
+                                    .foregroundStyle(AppColors.tertiaryText)
+                            }
+                        }
+                    }
+                    
+                    // Restaurant-specific: Show rating
+                    if let restaurantVisit = visit as? RestaurantVisit,
+                       let rating = restaurantVisit.rating {
+                        HStack(spacing: AppSpacing.xs) {
+                            ForEach(0..<rating, id: \.self) { _ in
+                                Image(systemName: "heart.fill")
+                                    .font(AppFonts.iconSmall)
+                                    .foregroundStyle(AppColors.accent)
+                            }
+                        }
+                    }
                     
                     // Delete button
                     Button(action: {
@@ -81,19 +88,6 @@ struct VisitRecord<T: VisitDisplayable>: View {
                             .foregroundStyle(AppColors.quaternaryText)
                     }
                     .buttonStyle(.plain)
-                }
-                
-                // Restaurant-specific: Rating
-                if let rating = visit.rating {
-                    HStack(alignment: .top, spacing: AppSpacing.md) {
-                        Image(systemName: "star.fill")
-                            .font(AppFonts.iconMedium)
-                            .foregroundStyle(AppColors.quaternaryText)
-                        
-                        Text("\(rating)")
-                            .font(CityDetailStyles.body)
-                            .foregroundStyle(AppColors.quaternaryText)
-                    }
                 }
                 
                 // Companion
@@ -123,12 +117,12 @@ struct VisitRecord<T: VisitDisplayable>: View {
                     }
                 }
             }
-            .padding(.vertical, AppSpacing.xl)
             
             // Divider - only show if not the last item
             if !isLast {
                 Divider()
                     .background(AppColors.tertiaryLabel.opacity(0.3))
+                    .padding(.vertical, AppSpacing.xl)
             }
         }
         .confirmationDialog(

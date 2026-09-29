@@ -4,17 +4,37 @@ import SwiftData
 struct AllCitiesListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisible) private var tabBarVisible
+    @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     let cities: [City]
     
     @State private var selectedCity: City?
     @State private var showingCityDetail = false
+    @State private var selectedTab: WishlistStatus? = nil // nil means "All"
+    @State private var searchText = ""
+    @State private var isSearching = false
     
-    private var visitedCities: [City] {
-        cities.filter { $0.isVisited }
+    private var tabFilteredCities: [City] {
+        guard let tab = selectedTab else {
+            // "All" tab selected - no specific sorting
+            return cities
+        }
+        
+        let filtered = cities.filter { $0.wishlistStatus == tab }
+        
+        // Sort based on status
+        switch tab {
+        case .visited:
+            return City.sortedByRecentVisit(filtered)
+        case .wishlisted:
+            return City.sortedByWishlistPriority(filtered)
+        case .notVisited:
+            return filtered // Keep default order for not visited
+        }
     }
     
-    private var wishlistedCities: [City] {
-        cities.filter { $0.wishlistStatus == .wishlisted }
+    // REFACTORED: Using Searchable protocol extension
+    private var searchFilteredCities: [City] {
+        tabFilteredCities.filtered(by: searchText, language: selectedLanguage)
     }
     
     var body: some View {
@@ -24,109 +44,101 @@ struct AllCitiesListView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Header
+                    // REFACTORED: Header with search functionality
                     HStack {
                         Button(action: {
-                            dismiss()
+                            if isSearching {
+                                // Cancel search
+                                isSearching = false
+                                searchText = ""
+                            } else {
+                                dismiss()
+                            }
                         }) {
-                            Image(systemName: "chevron.left")
+                            Image(systemName: isSearching ? "xmark" : "chevron.left")
                                 .font(AppFonts.icon)
                                 .foregroundStyle(AppColors.icon)
                         }
                         
                         Spacer()
                         
-                        Button(action: {}) {
+                        Button(action: {
+                            isSearching.toggle()
+                            if !isSearching {
+                                searchText = ""
+                            }
+                        }) {
                             Image(systemName: "magnifyingglass")
                                 .font(AppFonts.icon)
                                 .foregroundStyle(AppColors.icon)
                         }
                     }
                     .padding(.horizontal, AppSpacing.pageHorizontal)
-                    .padding(.top, AppSpacing.pageTop)
+                    .padding(.vertical, AppSpacing.pageTop)
+                    
+                    // REFACTORED: Using SearchBar component
+                    if isSearching {
+                        SearchBar(placeholder: "Search cities", text: $searchText)
+                    }
                 
-                // Title
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text("All Cities")
-                        .font(AppFonts.title)
-                        .foregroundStyle(AppColors.titleText)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, AppSpacing.pageHorizontal)
-                .padding(.top, AppSpacing.sectionTop)
+                    // Title
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        Text(isSearching ? "Search Results" : "All Cities")
+                            .font(AppFonts.title)
+                            .foregroundStyle(AppColors.titleText)
+                        
+                        Text("\(searchFilteredCities.count) cit\(searchFilteredCities.count == 1 ? "y" : "ies")")
+                            .font(AppFonts.body)
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, AppSpacing.pageHorizontal)
+                    .padding(.top, AppSpacing.sectionTop)
+                    .padding(.bottom, AppSpacing.sectionBottom)
+                    
+                    // Status tab bar
+                    OptionalTabBar(
+                        tabs: [
+                            ("Visited", .visited),
+                            ("Wishlist", .wishlisted),
+                            ("Not Yet", .notVisited),
+                            ("All", nil)
+                        ],
+                        selectedTab: $selectedTab,
+                        dividerBottomPadding: AppSpacing.md
+                    )
                 
-                // Content
-                ScrollView {
-                    VStack(alignment: .leading, spacing: AppSpacing.xxxl) {
-                        // Stats header
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                Text("\(visitedCities.count)")
-                                    .font(AppFonts.display)
-                                    .foregroundStyle(AppColors.label)
-                                    .tracking(-1)
-                                
-                                Text("cities")
-                                    .font(AppFonts.body)
-                                    .foregroundStyle(AppColors.secondaryLabel)
+                    // Content
+                    ScrollView {
+                        FlowLayout(spacing: AppSpacing.md) {
+                            ForEach(searchFilteredCities) { city in
+                                CityPill(city: city, visited: city.isVisited) {
+                                    selectedCity = city
+                                    showingCityDetail = true
+                                }
                             }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "globe")
-                                .font(AppFonts.iconExtraLarge)
-                                .foregroundStyle(AppColors.quaternaryLabel)
-                                .symbolRenderingMode(.hierarchical)
                         }
                         .padding(.horizontal, AppSpacing.pageHorizontal)
-                        .padding(.top, AppSpacing.xxl)
+                        .padding(.top, AppSpacing.md)
+                        .padding(.bottom, AppSpacing.contentBottom)
                         
-                        // Visited section
-                        if !visitedCities.isEmpty {
-                            VStack(alignment: .leading, spacing: AppSpacing.xl) {
-                                Text("Visited")
-                                    .font(AppFonts.headline)
-                                    .foregroundStyle(AppColors.label)
-                                    .padding(.horizontal, AppSpacing.pageHorizontal)
-                                
-                                CityPillGrid(cities: visitedCities, visited: true) { city in
-                                    selectedCity = city
-                                    showingCityDetail = true
-                                }
-                                .padding(.horizontal, AppSpacing.pageHorizontal)
-                            }
+                        // REFACTORED: Using EmptySearchState component
+                        if searchFilteredCities.isEmpty && isSearching && !searchText.isEmpty {
+                            EmptySearchState(itemType: "cities")
                         }
-                        
-                        // Wishlisted section
-                        if !wishlistedCities.isEmpty {
-                            VStack(alignment: .leading, spacing: AppSpacing.xl) {
-                                Text("Wishlisted")
-                                    .font(AppFonts.headline)
-                                    .foregroundStyle(AppColors.label)
-                                    .padding(.horizontal, AppSpacing.pageHorizontal)
-                                
-                                CityPillGrid(cities: wishlistedCities, visited: false) { city in
-                                    selectedCity = city
-                                    showingCityDetail = true
-                                }
-                                .padding(.horizontal, AppSpacing.pageHorizontal)
-                            }
-                        }
-                        
-                        Spacer(minLength: AppSpacing.paddingBottom)
                     }
                 }
-            }
-            .navigationBarHidden(true)
-            .navigationDestination(isPresented: $showingCityDetail) {
-                if let city = selectedCity {
-                    CityDetailView(city: city)
+                .navigationBarHidden(true)
+                .navigationDestination(isPresented: $showingCityDetail) {
+                    if let city = selectedCity {
+                        CityDetailView(city: city)
+                    }
                 }
-            }
-            .onAppear {
-                tabBarVisible.wrappedValue = false
+                .onAppear {
+                    tabBarVisible.wrappedValue = false
+                }
+                .animation(.easeInOut(duration: 0.2), value: isSearching)
             }
         }
     }
-}
 }

@@ -21,9 +21,13 @@ struct CitiesView: View {
     @State private var showingAllCities = false
     @State private var selectedCity: City?
     @State private var showingCityDetail = false
+    @State private var searchText = ""
+    @State private var isSearching = false
     
+    // REFACTORED: Using Searchable protocol extension
     private var visitedCities: [City] {
-        allCities.filter { $0.isVisited }
+        let visited = allCities.filter { $0.isVisited }
+        return visited.filtered(by: searchText, language: selectedLanguage)
     }
     
     private var cityAnnotations: [CityAnnotation] {
@@ -38,12 +42,18 @@ struct CitiesView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Header
+                    // REFACTORED: Header with search functionality
                     HStack {
                         Button(action: {
-                            tabBarVisible.wrappedValue = true
+                            if isSearching {
+                                // Cancel search
+                                isSearching = false
+                                searchText = ""
+                            } else {
+                                tabBarVisible.wrappedValue = true
+                            }
                         }) {
-                            Image(systemName: "chevron.left")
+                            Image(systemName: isSearching ? "xmark" : "chevron.left")
                                 .font(AppFonts.icon)
                                 .foregroundStyle(AppColors.icon)
                                 .contentShape(Rectangle()) // Ensure entire frame is tappable
@@ -51,7 +61,12 @@ struct CitiesView: View {
                         
                         Spacer()
                         
-                        Button(action: {}) {
+                        Button(action: {
+                            isSearching.toggle()
+                            if !isSearching {
+                                searchText = ""
+                            }
+                        }) {
                             Image(systemName: "magnifyingglass")
                                 .font(AppFonts.icon)
                                 .foregroundStyle(AppColors.icon)
@@ -62,23 +77,32 @@ struct CitiesView: View {
                     .padding(.top, AppSpacing.pageTop)
                     .background(AppColors.background) // Add background to block gestures below
                     .zIndex(1) // Ensure header is above map gestures
+                    
+                    // REFACTORED: Using SearchBar component
+                    if isSearching {
+                        SearchBar(placeholder: "Search cities", text: $searchText)
+                    }
+                    
+                    // Title
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        Text(isSearching ? "Search Results" : "Cities")
+                            .font(AppFonts.title)
+                            .foregroundStyle(AppColors.titleText)
                         
-                        // Title
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            Text("Cities")
-                                .font(AppFonts.title)
-                                .foregroundStyle(AppColors.titleText)
-                            
-                            Text("\(visitedCities.count) \(visitedCities.count == 1 ? "city" : "cities")")
-                                .font(AppFonts.body)
-                                .foregroundStyle(AppColors.secondaryText)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, AppSpacing.pageHorizontal)
-                        .padding(.top, AppSpacing.sectionTop)
-                        .padding(.bottom, AppSpacing.sectionBottom)
-                        
-                        // Map view - switches based on currentMapMode
+                        Text("\(visitedCities.count) \(visitedCities.count == 1 ? "city" : "cities")")
+                            .font(AppFonts.body)
+                            .foregroundStyle(AppColors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, AppSpacing.pageHorizontal)
+                    .padding(.top, AppSpacing.sectionTop)
+                    .padding(.bottom, AppSpacing.sectionBottom)
+                    
+                    // REFACTORED: Map view or empty state
+                    if visitedCities.isEmpty && isSearching && !searchText.isEmpty {
+                        EmptySearchState(itemType: "cities")
+                            .frame(height: 300)
+                    } else {
                         Group {
                             switch currentMapMode {
                             case .customWorldMap:
@@ -88,29 +112,31 @@ struct CitiesView: View {
                             }
                         }
                         .frame(maxHeight: 600)
-                        
-                        // View all cities button
-                        Button {
-                            showingAllCities = true
-                        } label: {
-                            HStack(spacing: AppSpacing.md) {
-                                Text("View all cities")
-                                    .font(CityDetailStyles.addButtonText)
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(CityDetailStyles.addButtonIcon)
-                            }
-                            .foregroundStyle(AppColors.primaryText)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: AppDimensions.buttonHeight)
-                            .background(
-                                RoundedRectangle(cornerRadius: AppDimensions.radiusLG)
-                                    .fill(AppColors.cardBackground)
-                            )
-                        }
-                        .padding(.top, 16)
                     }
+                    
+                    // View all cities button
+                    Button {
+                        showingAllCities = true
+                    } label: {
+                        HStack(spacing: AppSpacing.md) {
+                            Text("View all cities")
+                                .font(CityDetailStyles.addButtonText)
+                            
+                            Image(systemName: "chevron.right")
+                                .font(CityDetailStyles.addButtonIcon)
+                        }
+                        .foregroundStyle(AppColors.primaryText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: AppDimensions.buttonHeight)
+                        .background(
+                            RoundedRectangle(cornerRadius: AppDimensions.radiusLG)
+                                .fill(AppColors.cardBackground)
+                        )
+                    }
+                    .padding(.top, 16)
+                    .padding(.horizontal, AppSpacing.pageHorizontal)
                 }
+            }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showingCityDetail) {
                 if let city = selectedCity {
@@ -129,6 +155,7 @@ struct CitiesView: View {
             .onAppear {
                 tabBarVisible.wrappedValue = false
             }
+            .animation(.easeInOut(duration: 0.2), value: isSearching)
         }
     }
     
@@ -525,6 +552,38 @@ extension CityAnnotation {
           Coordinates: \(coordinate.latitude)°N, \(coordinate.longitude)°E
           Calculated position: x=\(String(format: "%.3f", normalizedX(in: .zero))), y=\(String(format: "%.3f", normalizedY(in: .zero)))
         """
+    }
+}
+
+
+
+// MARK: - Searchable Extensions
+
+extension Array where Element == City {
+    func filtered(by searchText: String, language: String) -> [City] {
+        guard !searchText.isEmpty else { return self }
+        
+        return self.filter { city in
+            let localizedName = city.localizedName(language: language).lowercased()
+            let englishName = city.name.lowercased()
+            let search = searchText.lowercased()
+            
+            return localizedName.contains(search) || englishName.contains(search)
+        }
+    }
+}
+
+extension Array where Element == MichelinRestaurant {
+    func filtered(by searchText: String, language: String) -> [MichelinRestaurant] {
+        guard !searchText.isEmpty else { return self }
+        
+        return self.filter { restaurant in
+            let localizedName = restaurant.localizedName(language: language).lowercased()
+            let englishName = restaurant.name.lowercased()
+            let search = searchText.lowercased()
+            
+            return localizedName.contains(search) || englishName.contains(search)
+        }
     }
 }
 

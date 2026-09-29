@@ -11,8 +11,6 @@ struct AddTransportationView: View {
     @State private var precision: DatePrecision = .exact
     @State private var date = Date()
     @State private var approxYear = Calendar.current.component(.year, from: Date())
-    @State private var approxYearStart = Calendar.current.component(.year, from: Date())
-    @State private var approxYearEnd = Calendar.current.component(.year, from: Date())
     
     @State private var fieldA = ""
     @State private var fieldB = ""
@@ -78,30 +76,8 @@ struct AddTransportationView: View {
                             displayedComponents: .date
                         )
                         .datePickerStyle(.compact)
-                    case .month:
-                        DatePicker(
-                            "Month",
-                            selection: $date,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.compact)
                     case .year:
                         Picker("Year", selection: $approxYear) {
-                            ForEach(years.reversed(), id: \.self) {
-                                Text(String($0))
-                                    .tag($0)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                    case .yearRange:
-                        Picker("From year", selection: $approxYearStart) {
-                            ForEach(years.reversed(), id: \.self) {
-                                Text(String($0))
-                                    .tag($0)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        Picker("To year", selection: $approxYearEnd) {
                             ForEach(years.reversed(), id: \.self) {
                                 Text(String($0))
                                     .tag($0)
@@ -168,10 +144,8 @@ struct AddTransportationView: View {
         let transportation = Transportation(
             mode: mode,
             precision: precision,
-            date: (precision == .exact || precision == .month) ? date : nil,
+            date: (precision == .exact) ? date : nil,
             approxYear: (precision == .year) ? approxYear : nil,
-            approxYearStart: (precision == .yearRange) ? approxYearStart : nil,
-            approxYearEnd: (precision == .yearRange) ? approxYearEnd : nil,
             fromLocation: fromValue.isEmpty ? nil : fromValue,
             toLocation: toValue.isEmpty ? nil : toValue,
             carrier: fieldA.isEmpty ? nil : fieldA,

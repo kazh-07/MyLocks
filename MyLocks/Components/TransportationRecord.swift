@@ -144,7 +144,7 @@ struct TransportationRecord: View {
             transportation: {
                 let t = Transportation(
                     mode: .cruise,
-                    precision: .month,
+                    precision: .exact,
                     date: Date(),
                     fromLocation: "Miami",
                     toLocation: "Caribbean",
@@ -161,9 +161,8 @@ struct TransportationRecord: View {
             transportation: {
                 let t = Transportation(
                     mode: .car,
-                    precision: .yearRange,
-                    approxYearStart: 2020,
-                    approxYearEnd: 2021,
+                    precision: .year,
+                    approxYear: 2020,
                     fromLocation: "Los Angeles",
                     toLocation: "San Diego",
                     identifier: "Honda Civic"

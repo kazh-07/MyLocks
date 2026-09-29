@@ -51,8 +51,8 @@ final class City {
         return .notVisited
     }
     
-    var firstVisitDate: Date? { visits.compactMap(\.date).min() }
-    var lastVisitDate: Date? { visits.compactMap(\.date).max() }
+    var firstVisitDate: Date? { visits.compactMap(\.displayDate).min() }
+    var lastVisitDate: Date? { visits.compactMap(\.displayDate).max() }
     var wishlistAddedDate: Date? { wishlists.map(\.addedAt).min() }
     
     /// Places from visits - places you've actually been to
