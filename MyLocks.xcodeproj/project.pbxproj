@@ -1,0 +1,379 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A730235B3069C472005DFC18 /* DatePrecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = A730235A3069C471005DFC18 /* DatePrecision.swift */; };
+		A7629D043068B0A700BE3183 /* WishlistStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7629D033068B0A700BE3183 /* WishlistStatus.swift */; };
+		A7629D183068B2E300BE3183 /* SAMPLE_DATA.md in Resources */ = {isa = PBXBuildFile; fileRef = A7629D173068B2E300BE3183 /* SAMPLE_DATA.md */; };
+		A7BFB8AA3068632100E5BB84 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A7BFB8A93068632100E5BB84 /* Assets.xcassets */; };
+		A7E28CB030681B290018743D /* String+NilIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */; };
+		A7FCD3EE306B0A29001E5DD2 /* Transportation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */; };
+		A7FCD450306B4BDB001E5DD2 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = A7FCD44F306B4BDB001E5DD2 /* .gitignore */; };
+		SF01 /* MyLocksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1 /* MyLocksApp.swift */; };
+		SF02 /* Country.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2 /* Country.swift */; };
+		SF04 /* City.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4 /* City.swift */; };
+		SF06 /* MichelinRestaurant.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6 /* MichelinRestaurant.swift */; };
+		SF08 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8 /* Event.swift */; };
+		SF10 /* ModelContainerProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10 /* ModelContainerProvider.swift */; };
+		SF16 /* AddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16 /* AddView.swift */; };
+		SF17 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17 /* RootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A730235A3069C471005DFC18 /* DatePrecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePrecision.swift; sourceTree = "<group>"; };
+		A7629D033068B0A700BE3183 /* WishlistStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishlistStatus.swift; sourceTree = "<group>"; };
+		A7629D173068B2E300BE3183 /* SAMPLE_DATA.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SAMPLE_DATA.md; sourceTree = "<group>"; };
+		A7BFB8A93068632100E5BB84 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+NilIfEmpty.swift"; sourceTree = "<group>"; };
+		A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transportation.swift; sourceTree = "<group>"; };
+		A7FCD44F306B4BDB001E5DD2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		B1 /* MyLocksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyLocksApp.swift; sourceTree = "<group>"; };
+		B10 /* ModelContainerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerProvider.swift; sourceTree = "<group>"; };
+		B16 /* AddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
+		B17 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B2 /* Country.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Country.swift; sourceTree = "<group>"; };
+		B4 /* City.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = City.swift; sourceTree = "<group>"; };
+		B6 /* MichelinRestaurant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MichelinRestaurant.swift; sourceTree = "<group>"; };
+		B8 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		PRODUCT /* MyLocks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = MyLocks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A7BFB87630683F0200E5BB84 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Cities/ChineseCitiesDataProvider.swift,
+				Countries/CountryDataProvider.swift,
+				Countries/DataMigration.swift,
+				DataSeeder.swift,
+				MichelinRestaurants/MichelinDataProvider.swift,
+			);
+			target = TARGET /* MyLocks */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A7BFB86E30683DED00E5BB84 /* Home */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Home; sourceTree = "<group>"; };
+		A7BFB86F30683DFA00E5BB84 /* Michelin */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Michelin; sourceTree = "<group>"; };
+		A7BFB87030683E0400E5BB84 /* Cities */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Cities; sourceTree = "<group>"; };
+		A7BFB87130683E0F00E5BB84 /* Events */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Events; sourceTree = "<group>"; };
+		A7BFB87230683E1E00E5BB84 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
+		A7BFB87330683E2E00E5BB84 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
+		A7BFB87430683E4C00E5BB84 /* Styles */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Styles; sourceTree = "<group>"; };
+		A7BFB87530683EF900E5BB84 /* Utilities */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A7BFB87630683F0200E5BB84 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Utilities; sourceTree = "<group>"; };
+		A7FCD3F3306B100C001E5DD2 /* Visits */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Visits; sourceTree = "<group>"; };
+		A7FCD3F4306B1029001E5DD2 /* Wishlists */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Wishlists; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G1 = {
+			isa = PBXGroup;
+			children = (
+				A7BFB8A93068632100E5BB84 /* Assets.xcassets */,
+				G2 /* MyLocks */,
+				G3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G2 /* MyLocks */ = {
+			isa = PBXGroup;
+			children = (
+				B1 /* MyLocksApp.swift */,
+				GM /* Models */,
+				GV /* Views */,
+				A7BFB87430683E4C00E5BB84 /* Styles */,
+				A7BFB87330683E2E00E5BB84 /* Components */,
+				A7BFB87530683EF900E5BB84 /* Utilities */,
+				A7629D173068B2E300BE3183 /* SAMPLE_DATA.md */,
+				A7FCD44F306B4BDB001E5DD2 /* .gitignore */,
+			);
+			path = MyLocks;
+			sourceTree = "<group>";
+		};
+		G3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				PRODUCT /* MyLocks.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		GM /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A7FCD3F4306B1029001E5DD2 /* Wishlists */,
+				A7FCD3F3306B100C001E5DD2 /* Visits */,
+				B2 /* Country.swift */,
+				B4 /* City.swift */,
+				B6 /* MichelinRestaurant.swift */,
+				B8 /* Event.swift */,
+				A7629D033068B0A700BE3183 /* WishlistStatus.swift */,
+				B10 /* ModelContainerProvider.swift */,
+				A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */,
+				A730235A3069C471005DFC18 /* DatePrecision.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GV /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A7BFB87230683E1E00E5BB84 /* Shared */,
+				A7BFB87130683E0F00E5BB84 /* Events */,
+				A7BFB87030683E0400E5BB84 /* Cities */,
+				A7BFB86F30683DFA00E5BB84 /* Michelin */,
+				A7BFB86E30683DED00E5BB84 /* Home */,
+				B16 /* AddView.swift */,
+				B17 /* RootView.swift */,
+				A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TARGET /* MyLocks */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = TL /* Build configuration list for PBXNativeTarget "MyLocks" */;
+			buildPhases = (
+				A1 /* Sources */,
+				A2 /* Frameworks */,
+				A3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A7BFB86E30683DED00E5BB84 /* Home */,
+				A7BFB86F30683DFA00E5BB84 /* Michelin */,
+				A7BFB87030683E0400E5BB84 /* Cities */,
+				A7BFB87130683E0F00E5BB84 /* Events */,
+				A7BFB87230683E1E00E5BB84 /* Shared */,
+				A7BFB87330683E2E00E5BB84 /* Components */,
+				A7BFB87430683E4C00E5BB84 /* Styles */,
+				A7FCD3F3306B100C001E5DD2 /* Visits */,
+				A7FCD3F4306B1029001E5DD2 /* Wishlists */,
+			);
+			name = MyLocks;
+			productName = MyLocks;
+			productReference = PRODUCT /* MyLocks.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJECT /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2610;
+			};
+			buildConfigurationList = PL /* Build configuration list for PBXProject "MyLocks" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = G1;
+			productRefGroup = G3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TARGET /* MyLocks */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A7FCD450306B4BDB001E5DD2 /* .gitignore in Resources */,
+				A7BFB8AA3068632100E5BB84 /* Assets.xcassets in Resources */,
+				A7629D183068B2E300BE3183 /* SAMPLE_DATA.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				SF01 /* MyLocksApp.swift in Sources */,
+				SF02 /* Country.swift in Sources */,
+				SF04 /* City.swift in Sources */,
+				A730235B3069C472005DFC18 /* DatePrecision.swift in Sources */,
+				A7E28CB030681B290018743D /* String+NilIfEmpty.swift in Sources */,
+				SF06 /* MichelinRestaurant.swift in Sources */,
+				SF08 /* Event.swift in Sources */,
+				A7629D043068B0A700BE3183 /* WishlistStatus.swift in Sources */,
+				SF10 /* ModelContainerProvider.swift in Sources */,
+				SF16 /* AddView.swift in Sources */,
+				SF17 /* RootView.swift in Sources */,
+				A7FCD3EE306B0A29001E5DD2 /* Transportation.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "My Locks";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MyLocks;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "My Locks";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MyLocks;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		PL /* Build configuration list for PBXProject "MyLocks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1 /* Debug */,
+				C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		TL /* Build configuration list for PBXNativeTarget "MyLocks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1 /* Debug */,
+				C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PROJECT /* Project object */;
+}

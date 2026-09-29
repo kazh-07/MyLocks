@@ -1,0 +1,597 @@
+import Foundation
+import SwiftData
+
+enum DataSeeder {
+    static func seedIfNeeded(from container: ModelContainer) async {
+        let context = ModelContext(container)
+        context.autosaveEnabled = false
+
+        // Check if we’ve already seeded (by looking for any Country)
+        let countryFetch = FetchDescriptor<Country>()
+        if let existing = try? context.fetch(countryFetch), existing.isEmpty == false {
+            // DEVELOPMENT MODE: Delete and re-seed instead of migrating
+            print("🔄 Development mode: Clearing existing data and re-seeding...")
+            
+            let cityFetch = FetchDescriptor<City>()
+            let restaurantFetch = FetchDescriptor<MichelinRestaurant>()
+            
+            if let cities = try? context.fetch(cityFetch) {
+                for city in cities { context.delete(city) }
+            }
+            if let countries = try? context.fetch(countryFetch) {
+                for country in countries { context.delete(country) }
+            }
+            if let restaurants = try? context.fetch(restaurantFetch) {
+                for restaurant in restaurants { context.delete(restaurant) }
+            }
+            
+            try? context.save()
+            print("✅ Cleared all existing data")
+            // Continue to re-seed below...
+        }
+
+        // Import all countries using iOS built-in data
+        var countryMap: [String: Country] = [:]
+        let allCountries = CountryDataProvider.allCountries()
+        
+        for countryData in allCountries {
+            // Add Chinese names for common countries
+            var chineseName: String?
+            switch countryData.code {
+            case "CN": chineseName = "中国"
+            case "US": chineseName = "美国"
+            case "JP": chineseName = "日本"
+            case "FR": chineseName = "法国"
+            case "GB": chineseName = "英国"
+            case "IT": chineseName = "意大利"
+            case "ES": chineseName = "西班牙"
+            case "DE": chineseName = "德国"
+            case "KR": chineseName = "韩国"
+            case "TH": chineseName = "泰国"
+            case "SG": chineseName = "新加坡"
+            case "HK": chineseName = "香港"
+            case "MO": chineseName = "澳门"
+            case "TW": chineseName = "台湾"
+            default: break
+            }
+            
+            let country = Country(
+                name: countryData.name,
+                code: countryData.code,
+                chineseName: chineseName,
+                nativeName: countryData.nativeName,
+                flagEmoji: countryData.flagEmoji,
+                continent: countryData.continent
+            )
+            context.insert(country)
+            countryMap[countryData.code] = country
+        }
+        
+        // Import all Chinese cities first (before restaurants, so cityMap exists)
+        let chineseCities = await ChineseCitiesDataProvider.allChineseCitiesAsync()
+        var cityMap: [String: City] = [:] // Key: city name for easy lookup
+        
+        for cityData in chineseCities {
+            guard let country = countryMap[cityData.countryCode] else {
+                print("Warning: Country not found for code: \(cityData.countryCode)")
+                continue
+            }
+            
+            let city = City(
+                name: cityData.name,
+                chineseName: cityData.chineseName,
+                country: country,
+                isChina: cityData.countryCode == "CN" || cityData.countryCode == "HK" || cityData.countryCode == "MO",
+                cityTier: cityData.tier,
+                province: cityData.province,
+                provinceChinese: cityData.provinceChinese,
+                thumbnailURL: cityData.thumbnailURL
+            )
+            context.insert(city)
+            cityMap[cityData.name] = city
+        }
+        
+        // Add some other major international cities
+        if let usa = countryMap["US"],
+           let france = countryMap["FR"],
+           let japan = countryMap["JP"],
+           let uk = countryMap["GB"],
+           let spain = countryMap["ES"],
+           let italy = countryMap["IT"],
+           let singapore = countryMap["SG"] {
+            
+            let internationalCities = [
+                City(name: "New York", chineseName: "纽约", country: usa, isChina: false, cityTier: nil),
+                City(name: "San Francisco", chineseName: "旧金山", country: usa, isChina: false, cityTier: nil),
+                City(name: "Los Angeles", chineseName: "洛杉矶", country: usa, isChina: false, cityTier: nil),
+                City(name: "Chicago", chineseName: "芝加哥", country: usa, isChina: false, cityTier: nil),
+                City(name: "Paris", chineseName: "巴黎", country: france, isChina: false, cityTier: nil),
+                City(name: "Tokyo", chineseName: "东京", country: japan, isChina: false, cityTier: nil),
+                City(name: "London", chineseName: "伦敦", country: uk, isChina: false, cityTier: nil),
+                City(name: "Barcelona", chineseName: "巴塞罗那", country: spain, isChina: false, cityTier: nil),
+                City(name: "Rome", chineseName: "罗马", country: italy, isChina: false, cityTier: nil),
+                City(name: "Singapore", chineseName: "新加坡", country: singapore, isChina: false, cityTier: nil),
+            ]
+            
+            for city in internationalCities {
+                context.insert(city)
+                cityMap[city.name] = city
+            }
+        }
+        
+        // Import Michelin restaurants (after cities, so cityMap is populated)
+        let restaurantData = await MichelinDataProvider.loadRestaurantsAsync()
+        var restaurantMap: [String: MichelinRestaurant] = [:] // Key: restaurant name for easy lookup
+        
+        for data in restaurantData {
+            guard let country = countryMap[data.countryCode] else {
+                print("Warning: Country not found for code: \(data.countryCode)")
+                continue
+            }
+            
+            // Try to find matching city from cityMap, or create a new one if needed
+            var restaurantCity: City? = cityMap[data.city]
+            
+            // If city doesn't exist yet, create it
+            if restaurantCity == nil {
+                let newCity = City(
+                    name: data.city,
+                    chineseName: nil, // Will be filled in if we have the data
+                    country: country,
+                    isChina: data.countryCode == "CN" || data.countryCode == "HK" || data.countryCode == "MO",
+                    cityTier: nil,
+                    province: nil,
+                    provinceChinese: nil
+                )
+                context.insert(newCity)
+                cityMap[data.city] = newCity
+                restaurantCity = newCity
+            }
+            
+            let restaurant = MichelinRestaurant(
+                name: data.name,
+                chineseName: data.chineseName,
+                city: restaurantCity,
+                country: country,
+                isChina: data.countryCode == "CN" || data.countryCode == "HK" || data.countryCode == "MO",
+                michelinLevel: data.michelinLevel,
+                rating: nil, // Can be added by user later
+                cuisine: data.cuisine,
+                cuisineChinese: data.cuisineChinese,
+                thumbnailURL: data.thumbnailURL
+            )
+            context.insert(restaurant)
+            restaurantMap[data.name] = restaurant
+        }
+        
+        // Add sample visits and wishlists for demo purposes
+        addSampleData(
+            context: context,
+            cityMap: cityMap,
+            restaurantMap: restaurantMap,
+            countryMap: countryMap
+        )
+
+        do {
+            try context.save()
+            
+            // Count cities with thumbnails for verification
+            let citiesWithThumbnails = cityMap.values.filter { $0.thumbnailURL != nil }.count
+            
+            print("✅ Successfully seeded:")
+            print("   • \(allCountries.count) countries")
+            print("   • \(chineseCities.count) Chinese cities")
+            print("   • \(cityMap.count) total cities")
+            print("   • \(citiesWithThumbnails) cities with thumbnail URLs")
+            print("   • \(restaurantData.count) restaurants")
+        } catch {
+            // If anything fails, we silently ignore to avoid crashing in production.
+            // Consider logging this in development.
+            print("❌ Seeding failed: \(error)")
+        }
+    }
+    
+    /// Refresh data from remote sources (Google Sheets and Google Drive)
+    static func refreshRestaurantData(from container: ModelContainer) async throws {
+        let context = ModelContext(container)
+        context.autosaveEnabled = false
+        
+        print("🔄 Refreshing data from remote sources...")
+        
+        // Fetch updated Chinese cities from Google Drive
+        let updatedCityData = await ChineseCitiesDataProvider.allChineseCitiesAsync()
+        
+        // Fetch updated restaurant data from Google Sheets
+        let updatedRestaurantData = await MichelinDataProvider.loadRestaurantsAsync()
+        
+        if updatedRestaurantData.isEmpty {
+            throw RefreshError.noDataLoaded
+        }
+        
+        // Get existing maps for countries and cities
+        let countryFetch = FetchDescriptor<Country>()
+        let countries = try context.fetch(countryFetch)
+        var countryMap: [String: Country] = [:]
+        for country in countries {
+            countryMap[country.code] = country
+        }
+        
+        let cityFetch = FetchDescriptor<City>()
+        let existingCities = try context.fetch(cityFetch)
+        var cityMap: [String: City] = [:]
+        for city in existingCities {
+            cityMap[city.name] = city
+        }
+        
+        // Update or create cities from Chinese cities data
+        var newCityCount = 0
+        var updatedCityCount = 0
+        
+        for cityData in updatedCityData {
+            guard let country = countryMap[cityData.countryCode] else {
+                print("⚠️ Country not found for code: \(cityData.countryCode)")
+                continue
+            }
+            
+            if let existingCity = cityMap[cityData.name] {
+                // Update existing city
+                existingCity.chineseName = cityData.chineseName
+                existingCity.cityTier = cityData.tier
+                existingCity.province = cityData.province
+                existingCity.provinceChinese = cityData.provinceChinese
+                updatedCityCount += 1
+            } else {
+                // Create new city
+                let newCity = City(
+                    name: cityData.name,
+                    chineseName: cityData.chineseName,
+                    country: country,
+                    isChina: cityData.countryCode == "CN" || cityData.countryCode == "HK" || cityData.countryCode == "MO",
+                    cityTier: cityData.tier,
+                    province: cityData.province,
+                    provinceChinese: cityData.provinceChinese
+                )
+                context.insert(newCity)
+                cityMap[cityData.name] = newCity
+                newCityCount += 1
+            }
+        }
+        
+        // Get existing restaurants
+        let restaurantFetch = FetchDescriptor<MichelinRestaurant>()
+        let existingRestaurants = try context.fetch(restaurantFetch)
+        var existingRestaurantMap: [String: MichelinRestaurant] = [:]
+        for restaurant in existingRestaurants {
+            existingRestaurantMap[restaurant.name] = restaurant
+        }
+        
+        var newRestaurantCount = 0
+        var updatedRestaurantCount = 0
+        
+        // Update or create restaurants
+        for data in updatedRestaurantData {
+            guard let country = countryMap[data.countryCode] else {
+                print("⚠️ Country not found for code: \(data.countryCode)")
+                continue
+            }
+            
+            // Find or create city
+            var restaurantCity: City? = cityMap[data.city]
+            if restaurantCity == nil {
+                let newCity = City(
+                    name: data.city,
+                    chineseName: nil,
+                    country: country,
+                    isChina: data.countryCode == "CN" || data.countryCode == "HK" || data.countryCode == "MO",
+                    cityTier: nil,
+                    province: nil,
+                    provinceChinese: nil
+                )
+                context.insert(newCity)
+                cityMap[data.city] = newCity
+                restaurantCity = newCity
+            }
+            
+            // Check if restaurant already exists
+            if let existingRestaurant = existingRestaurantMap[data.name] {
+                // Update existing restaurant
+                existingRestaurant.chineseName = data.chineseName
+                existingRestaurant.city = restaurantCity
+                existingRestaurant.country = country
+                existingRestaurant.michelinLevel = data.michelinLevel
+                existingRestaurant.cuisine = data.cuisine
+                existingRestaurant.cuisineChinese = data.cuisineChinese
+                existingRestaurant.thumbnailURL = data.thumbnailURL
+                updatedRestaurantCount += 1
+            } else {
+                // Create new restaurant
+                let restaurant = MichelinRestaurant(
+                    name: data.name,
+                    chineseName: data.chineseName,
+                    city: restaurantCity,
+                    country: country,
+                    isChina: data.countryCode == "CN" || data.countryCode == "HK" || data.countryCode == "MO",
+                    michelinLevel: data.michelinLevel,
+                    rating: nil,
+                    cuisine: data.cuisine,
+                    cuisineChinese: data.cuisineChinese,
+                    thumbnailURL: data.thumbnailURL
+                )
+                context.insert(restaurant)
+                newRestaurantCount += 1
+            }
+        }
+        
+        try context.save()
+        print("✅ Data refresh complete:")
+        print("   • Cities: \(newCityCount) new, \(updatedCityCount) updated")
+        print("   • Restaurants: \(newRestaurantCount) new, \(updatedRestaurantCount) updated")
+    }
+    
+    enum RefreshError: Error {
+        case noDataLoaded
+    }
+    
+    // MARK: - Sample Data
+    
+    private static func addSampleData(
+        context: ModelContext,
+        cityMap: [String: City],
+        restaurantMap: [String: MichelinRestaurant],
+        countryMap: [String: Country]
+    ) {
+        // Get some cities
+        guard let shanghai = cityMap["Shanghai"],
+              let beijing = cityMap["Beijing"],
+              let hongKong = cityMap["Hong Kong"],
+              let tokyo = cityMap["Tokyo"],
+              let paris = cityMap["Paris"],
+              let newYork = cityMap["New York"] else {
+            print("⚠️ Sample data: Some cities not found")
+            return
+        }
+        
+        // Get some countries
+        guard let china = countryMap["CN"],
+              let japan = countryMap["JP"],
+              let france = countryMap["FR"],
+              let usa = countryMap["US"] else {
+            print("⚠️ Sample data: Some countries not found")
+            return
+        }
+        
+        // === CITY VISITS ===
+        // Shanghai - visited multiple times
+        context.insert(CityVisit(
+            date: Date().addingTimeInterval(-86400 * 365),
+            note: "First time in Shanghai! Amazing food scene, loved the Bund area and the night skyline.",
+            places: ["The Bund", "Yu Garden", "Shanghai Tower", "Nanjing Road"],
+            city: shanghai
+        ))
+        
+        context.insert(CityVisit(
+            date: Date().addingTimeInterval(-86400 * 200),
+            note: "Back for business. Had the best xiaolongbao at Din Tai Fung. The French Concession is so charming.",
+            places: ["French Concession", "Tianzifang", "Xintiandi", "People's Square"],
+            city: shanghai
+        ))
+        
+        context.insert(CityVisit(
+            date: Date().addingTimeInterval(-86400 * 60),
+            note: "Third visit! Explored more local neighborhoods. Tried authentic Shanghainese cuisine in the old town.",
+            places: ["Old Town", "Jing'an Temple", "M50 Art District"],
+            city: shanghai
+        ))
+        
+        // Beijing - visited multiple times
+        context.insert(CityVisit(
+            date: Date().addingTimeInterval(-86400 * 180),
+            note: "Business trip, visited Great Wall. The Forbidden City is breathtaking!",
+            places: ["Great Wall", "Forbidden City", "Temple of Heaven"],
+            city: beijing
+        ))
+        
+        context.insert(CityVisit(
+            date: Date().addingTimeInterval(-86400 * 45),
+            note: "Second visit - tried Peking duck at a famous restaurant. Walked around hutongs and loved the local vibe.",
+            places: ["Nanluoguxiang", "798 Art District", "Summer Palace", "Hutongs"],
+            city: beijing
+        ))
+        
+        // Paris - visited once
+        context.insert(CityVisit(
+            date: Date().addingTimeInterval(-86400 * 90),
+            note: "Romantic getaway, amazing cafes. Visited the Louvre and walked along Seine.",
+            places: ["Louvre Museum", "Eiffel Tower", "Seine River", "Montmartre", "Notre-Dame"],
+            city: paris
+        ))
+        
+        // === CITY WISHLISTS ===
+        // Hong Kong - high priority wishlist
+        context.insert(CityWishlist(
+            city: hongKong,
+            note: "Want to try dim sum and visit Victoria Peak",
+            priority: 1,
+            places: ["Victoria Peak", "Tsim Sha Tsui", "Temple Street Night Market", "Lantau Island", "Wong Tai Sin Temple"]
+        ))
+        
+        // Tokyo - high priority wishlist
+        context.insert(CityWishlist(
+            city: tokyo,
+            note: "Sushi pilgrimage! Also want to see cherry blossoms",
+            priority: 1,
+            places: ["Tsukiji Market", "Senso-ji Temple", "Shibuya Crossing", "Meiji Shrine", "Tokyo Skytree", "Akihabara"]
+        ))
+        
+        // New York - medium priority wishlist
+        context.insert(CityWishlist(
+            city: newYork,
+            note: "Try the famous pizza and bagels",
+            priority: 2,
+            places: ["Times Square", "Central Park", "Statue of Liberty", "Brooklyn Bridge", "Metropolitan Museum", "Broadway"]
+        ))
+        
+        // === COUNTRY VISITS ===
+        context.insert(CountryVisit(
+            date: Date().addingTimeInterval(-86400 * 400),
+            note: "First trip to China, life-changing experience",
+            country: china
+        ))
+        
+        context.insert(CountryVisit(
+            date: Date().addingTimeInterval(-86400 * 90),
+            note: "France for anniversary",
+            country: france
+        ))
+        
+        // === COUNTRY WISHLISTS ===
+        context.insert(CountryWishlist(
+            country: japan,
+            note: "Must visit for ramen and culture",
+            priority: 1
+        ))
+        
+        context.insert(CountryWishlist(
+            country: usa,
+            note: "Road trip across America",
+            priority: 2
+        ))
+        
+        // === RESTAURANT VISITS ===
+        // Find some restaurants from the CSV data
+        let shanghaiRestaurants = restaurantMap.values.filter { $0.city?.name == "Shanghai" }
+        let beijingRestaurants = restaurantMap.values.filter { $0.city?.name == "Beijing" }
+        let parisRestaurants = restaurantMap.values.filter { $0.city?.name == "Paris" }
+        
+        // Add visits to Shanghai restaurants
+        if let taianTable = shanghaiRestaurants.first(where: { $0.name.contains("Taian") }) {
+            context.insert(RestaurantVisit(
+                date: Date().addingTimeInterval(-86400 * 365),
+                companion: "Sarah",
+                note: "Incredible tasting menu, every course was perfect",
+                rating: 5,
+                signatureDishes: ["Sea Cucumber with Black Truffle", "Wagyu Beef Tartare", "Crispy Duck", "Foie Gras with Cherry"],
+                restaurant: taianTable
+            ))
+        }
+        
+        if let fu1015 = shanghaiRestaurants.first(where: { $0.name.contains("Fu 1015") }) {
+            context.insert(RestaurantVisit(
+                date: Date().addingTimeInterval(-86400 * 364),
+                note: "Authentic Shanghainese cuisine",
+                rating: 4,
+                signatureDishes: ["Braised Pork Belly", "Steamed Crab", "Drunken Chicken"],
+                restaurant: fu1015
+            ))
+        }
+        
+        // Add visits to Beijing restaurants
+        if let xinjRongJi = beijingRestaurants.first(where: { $0.name.contains("Xin Rong Ji") && $0.michelinLevel == 3 }) {
+            context.insert(RestaurantVisit(
+                date: Date().addingTimeInterval(-86400 * 180),
+                companion: "Business colleagues",
+                note: "3-star experience! Seafood was outstanding",
+                rating: 5,
+                signatureDishes: ["Wild Yellow Croaker", "Taizhou Seafood", "Braised Abalone", "Sea Cucumber"],
+                restaurant: xinjRongJi
+            ))
+        }
+        
+        if let jingji = beijingRestaurants.first(where: { $0.name.contains("Jingji") }) {
+            context.insert(RestaurantVisit(
+                date: Date().addingTimeInterval(-86400 * 179),
+                note: "Beautiful Beijing cuisine presentation",
+                rating: 4,
+                signatureDishes: ["Peking Duck", "Imperial Court Soup", "Stir-fried Prawns"],
+                restaurant: jingji
+            ))
+        }
+        
+        // Add visit to Paris restaurant
+        if let arpege = parisRestaurants.first(where: { $0.name.contains("Arpège") }) {
+            context.insert(RestaurantVisit(
+                date: Date().addingTimeInterval(-86400 * 90),
+                companion: "Partner",
+                note: "Anniversary dinner - vegetable-focused menu was extraordinary",
+                rating: 5,
+                signatureDishes: ["Beetroot with Caviar", "Turnip and Radish Symphony", "Garden Vegetables", "Alain Passard's Tomato"],
+                restaurant: arpege
+            ))
+        }
+        
+        // === RESTAURANT WISHLISTS ===
+        let hongKongRestaurants = restaurantMap.values.filter { $0.city?.name == "Hong Kong" }
+        let tokyoRestaurants = restaurantMap.values.filter { $0.city?.name == "Tokyo" }
+        
+        // Hong Kong restaurants wishlist
+        if let forum = hongKongRestaurants.first(where: { $0.name.contains("Forum") && $0.michelinLevel == 3 }) {
+            context.insert(RestaurantWishlist(
+                restaurant: forum,
+                note: "3-star Cantonese! Must try their signature dishes",
+                priority: 1,
+                signatureDishes: ["Barbecued Suckling Pig", "Crispy Chicken", "Steamed Fresh Grouper", "Abalone with Oyster Sauce"]
+            ))
+        }
+        
+        if let timHoWan = hongKongRestaurants.first(where: { $0.name.contains("Tim Ho Wan") }) {
+            context.insert(RestaurantWishlist(
+                restaurant: timHoWan,
+                note: "Famous dim sum, affordable Michelin star",
+                priority: 2,
+                signatureDishes: ["Baked BBQ Pork Buns", "Steamed Egg Cake", "Pan Fried Turnip Cake", "Vermicelli Roll with Pig's Liver"]
+            ))
+        }
+        
+        // Tokyo restaurants wishlist
+        if let sukiyabashi = tokyoRestaurants.first(where: { $0.name.contains("Sukiyabashi") }) {
+            context.insert(RestaurantWishlist(
+                restaurant: sukiyabashi,
+                note: "Jiro's legendary sushi - bucket list!",
+                priority: 1,
+                signatureDishes: ["Omakase Nigiri Course", "Otoro", "Chu-toro", "Uni", "Kohada", "Anago"]
+            ))
+        }
+        
+        // === SAMPLE EVENTS ===
+        let shanghaiNewYear = Event(
+            name: "Shanghai New Year Fireworks",
+            category: "Festival",
+            city: "Shanghai",
+            country: "China",
+            note: "Annual spectacular display at the Bund"
+        )
+        context.insert(shanghaiNewYear)
+        
+        let tokyoCherry = Event(
+            name: "Tokyo Cherry Blossom Festival",
+            category: "Festival",
+            city: "Tokyo",
+            country: "Japan",
+            note: "Hanami season in Ueno Park"
+        )
+        context.insert(tokyoCherry)
+        
+        // Event visit
+        context.insert(EventVisit(
+            date: Date().addingTimeInterval(-86400 * 365),
+            note: "Incredible atmosphere, so crowded but worth it!",
+            event: shanghaiNewYear
+        ))
+        
+        // Event wishlist
+        context.insert(EventWishlist(
+            event: tokyoCherry,
+            note: "Dream to see cherry blossoms in person",
+            priority: 1
+        ))
+        
+        print("✅ Added sample data:")
+        print("   • 3 city visits (Shanghai, Beijing, Paris)")
+        print("   • 3 city wishlists (Hong Kong, Tokyo, New York)")
+        print("   • 2 country visits (China, France)")
+        print("   • 2 country wishlists (Japan, USA)")
+        print("   • ~5 restaurant visits")
+        print("   • ~3 restaurant wishlists")
+        print("   • 2 events with 1 visit and 1 wishlist")
+    }
+}
