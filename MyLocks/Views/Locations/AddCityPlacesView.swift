@@ -101,7 +101,6 @@ struct AddCityPlacesView: View {
             let newWishlist = CityWishlist(
                 city: city,
                 note: nil,
-                priority: nil,
                 places: sortedPlaces
             )
             modelContext.insert(newWishlist)

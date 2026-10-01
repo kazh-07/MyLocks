@@ -52,7 +52,6 @@ struct CityDetailView: View {
             let wishlist = CityWishlist(
                 city: city,
                 note: nil,
-                priority: nil,
                 places: nil
             )
             modelContext.insert(wishlist)

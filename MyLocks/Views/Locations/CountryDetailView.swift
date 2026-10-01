@@ -11,6 +11,13 @@ struct CountryDetailView: View {
     @State private var selectedCity: City?
     @State private var showingCityDetail = false
     
+    // Query country visits for this specific country
+    @Query private var allCountryVisits: [CountryVisit]
+    
+    private var countryVisits: [CountryVisit] {
+        allCountryVisits.filter { $0.country?.id == country.id }
+    }
+    
     // MARK: - Delete Visit
     
     private func deleteCountryVisit(_ visit: CountryVisit) {
@@ -105,7 +112,7 @@ struct CountryDetailView: View {
                             
                             if country.isVisited {
                                 // Count only country-level visits (not individual city visits)
-                                VisitedPill(visitCount: country.visits.count)
+                                VisitedPill(visitCount: countryVisits.count)
                             }
                         }
                         
@@ -169,7 +176,7 @@ struct CountryDetailView: View {
                     }
                     
                     // Visits section - shows country visits with their city visits nested
-                    if !country.visits.isEmpty {
+                    if !countryVisits.isEmpty {
                         VStack(alignment: .leading, spacing: AppSpacing.xl) {
                             HStack {
                                 Text("Visits")
@@ -178,14 +185,14 @@ struct CountryDetailView: View {
                                 
                                 Spacer()
                                 
-                                Text("\(country.visits.count)")
+                                Text("\(countryVisits.count)")
                                     .font(AppFonts.headline)
                                     .foregroundStyle(AppColors.secondaryLabel)
                             }
                             .padding(.horizontal, AppSpacing.pageHorizontal)
                             
                             VStack(spacing: AppSpacing.md) {
-                                ForEach(country.visits.sorted(by: { ($0.displayDate ?? .distantPast) > ($1.displayDate ?? .distantPast) })) { visit in
+                                ForEach(countryVisits.sorted(by: { ($0.displayDate ?? .distantPast) > ($1.displayDate ?? .distantPast) })) { visit in
                                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
                                         HStack {
                                             // Date - shows earliest city visit date if available, respecting precision
