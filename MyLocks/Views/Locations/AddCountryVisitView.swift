@@ -54,21 +54,21 @@ struct AddCountryVisitView: View {
     private let years = Array(1950...Calendar.current.component(.year, from: Date()))
     
     // Validation
-    private var isValidRange: Bool {
-        if !isRange { return true }
-        
-        switch precision {
-        case .exact:
-            return endDate >= startDate
-        case .year:
-            return endYear >= startYear
-        }
+    private var validator: DateRangeValidator {
+        DateRangeValidator(
+            precision: precision,
+            isRange: isRange,
+            startDate: startDate,
+            endDate: endDate,
+            startYear: startYear,
+            endYear: endYear
+        )
     }
     
     private var canSave: Bool {
         // Can save if the date range is valid
         // Cities are now optional - can save even without cities
-        isValidRange
+        validator.isValid
     }
     
     // Duration preview
@@ -230,7 +230,7 @@ struct AddCountryVisitView: View {
                                     showAddCity = true
                                 } label: {
                                     Image(systemName: "pencil")
-                                        .foregroundStyle(.blue)
+                                        .foregroundStyle(AppColors.label)
                                 }
                                 .buttonStyle(.borderless)
                             }
@@ -245,11 +245,12 @@ struct AddCountryVisitView: View {
                         showAddCity = true
                     } label: {
                         Label("Add City", systemImage: "plus.circle.fill")
+                            .foregroundStyle(AppColors.label)
                     }
                 } header: {
-                    Text(mode == .visit ? "Cities Visited (Optional)" : "Cities to Visit (Optional)")
+                    Text(mode == .visit ? "Cities Visited" : "Cities to Visit")
                 } footer: {
-                    Text("Optionally add cities you \(mode == .visit ? "visited" : "want to visit") in \(country.localizedName(language: selectedLanguage))")
+                    Text("Add cities you \(mode == .visit ? "visited" : "want to visit") in \(country.localizedName(language: selectedLanguage))")
                 }
                 
                 // Notes section
@@ -311,58 +312,43 @@ struct AddCountryVisitView: View {
     }
     
     private func saveVisit() {
-        // Determine the date for the country visit
-        var visitDate: Date
+        // Determine the earliest date from all city visits for the country visit
+        var earliestDate: Date?
         
-        if selectedCities.isEmpty {
-            // No cities selected - use the country-level date selection
-            switch precision {
-            case .exact:
-                visitDate = startDate
-            case .year:
-                visitDate = Calendar.current.date(from: DateComponents(year: startYear, month: 1, day: 1)) ?? Date()
-            }
-        } else {
-            // Determine the earliest date from all city visits for the country visit
-            var earliestDate: Date?
+        for entry in selectedCities {
+            let entryDate: Date?
             
-            for entry in selectedCities {
-                let entryDate: Date?
-                
-                if let precision = entry.precision {
-                    switch precision {
-                    case .exact:
-                        entryDate = entry.startDate
-                    case .year:
-                        if let year = entry.startYear {
-                            entryDate = Calendar.current.date(from: DateComponents(year: year, month: 1, day: 1))
-                        } else {
-                            entryDate = nil
-                        }
-                    }
-                } else {
-                    entryDate = nil
-                }
-                
-                if let date = entryDate {
-                    if earliestDate == nil || date < earliestDate! {
-                        earliestDate = date
+            if let precision = entry.precision {
+                switch precision {
+                case .exact:
+                    entryDate = entry.startDate
+                case .year:
+                    if let year = entry.startYear {
+                        entryDate = Calendar.current.date(from: DateComponents(year: year, month: 1, day: 1))
+                    } else {
+                        entryDate = nil
                     }
                 }
+            } else {
+                entryDate = nil
             }
             
-            visitDate = earliestDate ?? Date()
+            if let date = entryDate {
+                if earliestDate == nil || date < earliestDate! {
+                    earliestDate = date
+                }
+            }
         }
         
-        // Create country visit
+        // Create country visit with the earliest date
         let countryVisit = CountryVisit(
             country: country,
-            date: visitDate,
+            date: earliestDate ?? Date(),
             notes: notes.isEmpty ? nil : notes
         )
         modelContext.insert(countryVisit)
         
-        // Create city visits with individual date information (if any cities were selected)
+        // Create city visits with individual date information
         for entry in selectedCities {
             let cityVisit: CityVisit
             
@@ -453,6 +439,9 @@ struct CityVisitEntry: Identifiable {
     var endDate: Date?
     var startYear: Int?
     var endYear: Int?
+    
+    // Transportation
+    var transportation: Transportation?
 }
 
 // MARK: - City Entry Sheet
@@ -479,7 +468,22 @@ struct CityEntrySheet: View {
     @State private var startYear: Int
     @State private var endYear: Int
     
+    // Transportation
+    @State private var pendingTransportation: Transportation?
+    @State private var showAddTransportation = false
+    @State private var citySearchText = ""
+    
     private let years = Array(1950...Calendar.current.component(.year, from: Date()))
+    
+    private var filteredCities: [City] {
+        if citySearchText.isEmpty {
+            return availableCities
+        }
+        return availableCities.filter { city in
+            city.localizedName(language: selectedLanguage)
+                .localizedCaseInsensitiveContains(citySearchText)
+        }
+    }
     
     init(
         mode: AddCountryVisitView.VisitMode,
@@ -509,6 +513,7 @@ struct CityEntrySheet: View {
                 _endDate = State(initialValue: entry.endDate ?? Date())
                 _startYear = State(initialValue: entry.startYear ?? currentYear)
                 _endYear = State(initialValue: entry.endYear ?? currentYear)
+                _pendingTransportation = State(initialValue: entry.transportation)
             } else {
                 _placesText = State(initialValue: entry.wishlistPlaces?.joined(separator: ", ") ?? "")
                 _startYear = State(initialValue: currentYear)
@@ -528,11 +533,23 @@ struct CityEntrySheet: View {
         NavigationStack {
             Form {
                 Section {
-                    Picker("City", selection: $selectedCity) {
-                        Text("Select a city").tag(nil as City?)
-                        ForEach(availableCities, id: \.id) { city in
-                            Text(city.localizedName(language: selectedLanguage))
-                                .tag(city as City?)
+                    NavigationLink {
+                        CitySearchList(
+                            availableCities: availableCities,
+                            selectedLanguage: selectedLanguage,
+                            selectedCity: $selectedCity
+                        )
+                    } label: {
+                        HStack {
+                            Text("City")
+                            Spacer()
+                            if let city = selectedCity {
+                                Text(city.localizedName(language: selectedLanguage))
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Select a city")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                 } header: {
@@ -540,91 +557,39 @@ struct CityEntrySheet: View {
                 }
                 
                 if mode == .visit {
-                    Section {
-                        Picker("Precision", selection: $precision) {
-                            ForEach(DatePrecision.allCases) { p in
-                                Text(p.label).tag(p)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        
-                        Toggle(isOn: $isRange) {
-                            Text(isRange ? precision.rangeLabel : "Single \(precision.label)")
-                        }
-                        
-                        // Date pickers
-                        switch precision {
-                        case .exact:
-                            if isRange {
-                                DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
-                                    .onChange(of: startDate) { _, newValue in
-                                        if endDate < newValue { endDate = newValue }
-                                    }
-                                
-                                DatePicker("End Date", selection: $endDate, displayedComponents: .date)
-                                    .onChange(of: endDate) { _, newValue in
-                                        if newValue < startDate { startDate = newValue }
-                                    }
-                            } else {
-                                DatePicker("Visit Date", selection: $startDate, displayedComponents: .date)
-                            }
-                            
-                        case .year:
-                            if isRange {
-                                Picker("Start Year", selection: $startYear) {
-                                    ForEach(years.reversed(), id: \.self) {
-                                        Text(String($0)).tag($0)
-                                    }
-                                }
-                                .onChange(of: startYear) { _, newValue in
-                                    if endYear < newValue { endYear = newValue }
-                                }
-                                
-                                Picker("End Year", selection: $endYear) {
-                                    ForEach(years.reversed(), id: \.self) {
-                                        Text(String($0)).tag($0)
-                                    }
-                                }
-                                .onChange(of: endYear) { _, newValue in
-                                    if newValue < startYear { startYear = newValue }
-                                }
-                            } else {
-                                Picker("Year", selection: $startYear) {
-                                    ForEach(years.reversed(), id: \.self) {
-                                        Text(String($0)).tag($0)
-                                    }
-                                }
-                            }
-                        }
-                    } header: {
-                        Text("When did you visit?")
-                    }
+                    DateSelectionSection(
+                        precision: $precision,
+                        isRange: $isRange,
+                        startDate: $startDate,
+                        endDate: $endDate,
+                        startYear: $startYear,
+                        endYear: $endYear
+                    )
                     
-                    Section {
-                        TextField("Companion", text: $companion)
-                    } header: {
-                        Text("Travel Companion (Optional)")
-                    }
+                    CompanionSection(companion: $companion)
+                    
+                    TransportationSection(
+                        transportation: $pendingTransportation,
+                        showAddTransportation: $showAddTransportation
+                    )
                 }
                 
-                Section {
-                    TextField(mode == .visit ? "e.g., Eiffel Tower, Louvre" : "Places you want to visit", text: $placesText, axis: .vertical)
-                        .lineLimit(3...6)
-                } header: {
-                    Text(mode == .visit ? "Notable Places (Optional)" : "Wishlist Places (Optional)")
-                } footer: {
-                    Text("Separate multiple places with commas")
-                }
+                PlacesSection(
+                    placesText: $placesText,
+                    mode: mode == .visit ? .visit : .wishlist
+                )
                 
-                Section {
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(3...6)
-                } header: {
-                    Text("Notes (Optional)")
-                }
+                NotesSection(notes: $notes)
             }
             .navigationTitle(existingEntry == nil ? "Add City" : "Edit City")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showAddTransportation) {
+                AddTransportationView(
+                    onSave: { transportation in
+                        pendingTransportation = transportation
+                    }
+                )
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -645,10 +610,7 @@ struct CityEntrySheet: View {
     private func save() {
         guard let city = selectedCity else { return }
         
-        let placesArray = placesText
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
+        let placesArray = PlacesParser.parse(placesText)
         
         let entry = CityVisitEntry(
             city: city,
@@ -661,10 +623,57 @@ struct CityEntrySheet: View {
             startDate: mode == .visit ? startDate : nil,
             endDate: mode == .visit ? endDate : nil,
             startYear: mode == .visit ? startYear : nil,
-            endYear: mode == .visit ? endYear : nil
+            endYear: mode == .visit ? endYear : nil,
+            transportation: mode == .visit ? pendingTransportation : nil
         )
         
         onSave(entry)
         dismiss()
+    }
+}
+
+// MARK: - City Search List
+
+struct CitySearchList: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    let availableCities: [City]
+    let selectedLanguage: String
+    @Binding var selectedCity: City?
+    
+    @State private var searchText = ""
+    
+    private var filteredCities: [City] {
+        if searchText.isEmpty {
+            return availableCities
+        }
+        return availableCities.filter { city in
+            city.localizedName(language: selectedLanguage)
+                .localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    var body: some View {
+        List {
+            ForEach(filteredCities, id: \.id) { city in
+                Button {
+                    selectedCity = city
+                    dismiss()
+                } label: {
+                    HStack {
+                        Text(city.localizedName(language: selectedLanguage))
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        if selectedCity?.id == city.id {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(AppColors.accent)
+                        }
+                    }
+                }
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search cities")
+        .navigationTitle("Select City")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
