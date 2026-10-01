@@ -3,11 +3,15 @@ import SwiftData
 
 struct HomeView: View {
     @Query(sort: \City.name) private var allCities: [City]
+    @Query(sort: \Country.name) private var allCountries: [Country]
     @Query(sort: \MichelinRestaurant.createdAt, order: .reverse) private var allRestaurants: [MichelinRestaurant]
-    @State private var selectedTab = "Cities"
+    @State private var selectedTab = "Locations"
+    @State private var locationViewMode: LocationViewMode = .cities
     @State private var selectedCity: City?
+    @State private var selectedCountry: Country?
     @State private var selectedRestaurant: MichelinRestaurant?
     @State private var showingCityDetail = false
+    @State private var showingCountryDetail = false
     @State private var showingRestaurantDetail = false
     @State private var showingSettings = false
     @State private var searchText = ""
@@ -19,7 +23,7 @@ struct HomeView: View {
         let visited = allCities.filter { $0.isVisited }
         // Sort by most recent visit
         let sorted = City.sortedByRecentVisit(visited)
-        guard isSearching && selectedTab == "Cities" else { return sorted }
+        guard isSearching && selectedTab == "Locations" else { return sorted }
         return sorted.filtered(by: searchText, language: selectedLanguage)
     }
     
@@ -27,7 +31,23 @@ struct HomeView: View {
         let wishlisted = allCities.filter { $0.wishlistStatus == .wishlisted }
         // Sort by priority, then by date added
         let sorted = City.sortedByWishlistPriority(wishlisted)
-        guard isSearching && selectedTab == "Cities" else { return sorted }
+        guard isSearching && selectedTab == "Locations" else { return sorted }
+        return sorted.filtered(by: searchText, language: selectedLanguage)
+    }
+    
+    private var visitedCountries: [Country] {
+        let visited = allCountries.filter { $0.isVisited }
+        // Sort by most recent visit
+        let sorted = Country.sortedByRecentVisit(visited)
+        guard isSearching && selectedTab == "Locations" else { return sorted }
+        return sorted.filtered(by: searchText, language: selectedLanguage)
+    }
+    
+    private var wishlistedCountries: [Country] {
+        let wishlisted = allCountries.filter { $0.wishlistStatus == .wishlisted }
+        // Sort by priority, then by date added
+        let sorted = Country.sortedByWishlistPriority(wishlisted)
+        guard isSearching && selectedTab == "Locations" else { return sorted }
         return sorted.filtered(by: searchText, language: selectedLanguage)
     }
     
@@ -58,7 +78,7 @@ struct HomeView: View {
                     ScrollView {
                         Group {
                             switch selectedTab {
-                            case "Cities":
+                            case "Locations":
                                 citiesContent
                             case "Michelin":
                                 michelinContent
@@ -104,7 +124,9 @@ struct HomeView: View {
                             // REFACTORED: Using SearchBar component
                             if isSearching {
                                 SearchBar(
-                                    placeholder: selectedTab == "Cities" ? "Search cities" : "Search restaurants",
+                                    placeholder: selectedTab == "Locations" ? 
+                                        (locationViewMode == .cities ? "Search cities" : "Search countries") : 
+                                        "Search restaurants",
                                     text: $searchText
                                 )
                             }
@@ -123,7 +145,7 @@ struct HomeView: View {
                             // Custom tab bar with refined styling
                             TabBar(
                                 tabs: [
-                                    ("Cities", "Cities"),
+                                    ("Locations", "Locations"),
                                     ("Michelin", "Michelin"),
                                     ("Events", "Events"),
                                     ("Others", "Others")
@@ -137,6 +159,11 @@ struct HomeView: View {
                 .navigationDestination(isPresented: $showingCityDetail) {
                     if let city = selectedCity {
                         CityDetailView(city: city)
+                    }
+                }
+                .navigationDestination(isPresented: $showingCountryDetail) {
+                    if let country = selectedCountry {
+                        CountryDetailView(country: country)
                     }
                 }
                 .navigationDestination(isPresented: $showingRestaurantDetail) {
@@ -157,58 +184,120 @@ struct HomeView: View {
     @ViewBuilder
     private var citiesContent: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xxxl) {
-            // Stats header with refined typography
-            HStack(alignment: .top) {
+            // Stats header with inline menu on the label
+            HStack {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("\(visitedCities.count)")
+                    Text("\(locationViewMode == .cities ? visitedCities.count : visitedCountries.count)")
                         .font(AppFonts.display)
                         .foregroundStyle(AppColors.label)
                         .tracking(-1)
                     
-                    Text("cities")
-                        .font(AppFonts.body)
-                        .foregroundStyle(AppColors.secondaryLabel)
+                    // Replaced Picker(.menu) with Menu to avoid system tinting of the label.
+                    Menu {
+                        Button {
+                            locationViewMode = .cities
+                        } label: {
+                            HStack {
+                                if locationViewMode == .cities {
+                                    Image(systemName: "checkmark")
+                                }
+                                Text("Cities")
+                            }
+                        }
+                        Button {
+                            locationViewMode = .countries
+                        } label: {
+                            HStack {
+                                if locationViewMode == .countries {
+                                    Image(systemName: "checkmark")
+                                }
+                                Text("Countries")
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(locationViewMode == .cities ? "cities" : "countries")
+                                .font(AppFonts.body)
+                                .foregroundStyle(AppColors.secondaryLabel)
+                            Image(systemName: "chevron.down")
+                                .font(AppFonts.iconSmall)
+                                .foregroundStyle(AppColors.tertiaryLabel)
+                        }
+                        .contentShape(Rectangle())
+                        .padding(.vertical, 4)
+                    }
+                    .menuStyle(.automatic)
                 }
                 
                 Spacer()
-                
-                Image(systemName: "globe")
-                    .font(AppFonts.iconExtraLarge)
-                    .foregroundStyle(AppColors.quaternaryLabel)
-                    .symbolRenderingMode(.hierarchical)
             }
             .padding(.horizontal, AppSpacing.pageHorizontal)
             .padding(.top, AppSpacing.xxl)
             
-            // Visited section with refined typography
-            if !visitedCities.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.xl) {
-                    Text("Visited")
-                        .font(AppFonts.headline)
-                        .foregroundStyle(AppColors.label)
+            // Content based on mode
+            if locationViewMode == .cities {
+                // Visited cities section
+                if !visitedCities.isEmpty {
+                    VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                        Text("Visited")
+                            .font(AppFonts.headline)
+                            .foregroundStyle(AppColors.label)
+                            .padding(.horizontal, AppSpacing.pageHorizontal)
+                        
+                        CityPillGrid(cities: visitedCities, visited: true) { city in
+                            selectedCity = city
+                            showingCityDetail = true
+                        }
                         .padding(.horizontal, AppSpacing.pageHorizontal)
-                    
-                    CityPillGrid(cities: visitedCities, visited: true) { city in
-                        selectedCity = city
-                        showingCityDetail = true
                     }
-                    .padding(.horizontal, AppSpacing.pageHorizontal)
                 }
-            }
-            
-            // Wishlisted section with refined typography
-            if !wishlistedCities.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.xl) {
-                    Text("Wishlisted")
-                        .font(AppFonts.headline)
-                        .foregroundStyle(AppColors.label)
+                
+                // Wishlisted cities section
+                if !wishlistedCities.isEmpty {
+                    VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                        Text("Wishlisted")
+                            .font(AppFonts.headline)
+                            .foregroundStyle(AppColors.label)
+                            .padding(.horizontal, AppSpacing.pageHorizontal)
+                        
+                        CityPillGrid(cities: wishlistedCities, visited: false) { city in
+                            selectedCity = city
+                            showingCityDetail = true
+                        }
                         .padding(.horizontal, AppSpacing.pageHorizontal)
-                    
-                    CityPillGrid(cities: wishlistedCities, visited: false) { city in
-                        selectedCity = city
-                        showingCityDetail = true
                     }
-                    .padding(.horizontal, AppSpacing.pageHorizontal)
+                }
+            } else {
+                // Visited countries section
+                if !visitedCountries.isEmpty {
+                    VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                        Text("Visited")
+                            .font(AppFonts.headline)
+                            .foregroundStyle(AppColors.label)
+                            .padding(.horizontal, AppSpacing.pageHorizontal)
+                        
+                        CountryPillGrid(countries: visitedCountries, visited: true) { country in
+                            selectedCountry = country
+                            showingCountryDetail = true
+                        }
+                        .padding(.horizontal, AppSpacing.pageHorizontal)
+                    }
+                }
+                
+                // Wishlisted countries section
+                if !wishlistedCountries.isEmpty {
+                    VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                        Text("Wishlisted")
+                            .font(AppFonts.headline)
+                            .foregroundStyle(AppColors.label)
+                            .padding(.horizontal, AppSpacing.pageHorizontal)
+                        
+                        CountryPillGrid(countries: wishlistedCountries, visited: false) { country in
+                            selectedCountry = country
+                            showingCountryDetail = true
+                        }
+                        .padding(.horizontal, AppSpacing.pageHorizontal)
+                    }
                 }
             }
             

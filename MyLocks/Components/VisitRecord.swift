@@ -16,6 +16,12 @@ extension RestaurantVisit: VisitDisplayable {
     var displayDate: Date? { date }
 }
 
+/// Extend CountryVisit to conform to VisitDisplayable
+extension CountryVisit: VisitDisplayable {
+    var note: String? { notes }
+    var companion: String? { nil }
+}
+
 /// A reusable component for displaying visit records with date and notes
 /// Supports both city visits and restaurant visits
 struct VisitRecord<T: VisitDisplayable>: View {
@@ -79,15 +85,17 @@ struct VisitRecord<T: VisitDisplayable>: View {
                         }
                     }
                     
-                    // Delete button
-                    Button(action: {
-                        showDeleteConfirmation = true
-                    }) {
-                        Image(systemName: "trash")
-                            .font(AppFonts.iconSmall)
-                            .foregroundStyle(AppColors.quaternaryText)
+                    // Delete button (shown only when onDelete is provided)
+                    if onDelete != nil {
+                        Button(action: {
+                            showDeleteConfirmation = true
+                        }) {
+                            Image(systemName: "trash")
+                                .font(AppFonts.iconSmall)
+                                .foregroundStyle(AppColors.quaternaryText)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
                 
                 // Companion
@@ -141,37 +149,6 @@ struct VisitRecord<T: VisitDisplayable>: View {
 }
 
 // MARK: - Preview
-
-#Preview("City Visits") {
-    VStack(spacing: AppSpacing.xl) {
-        VisitRecord(
-            visit: CityVisit(
-                date: Date(),
-                note: "This was an amazing trip! The food was incredible and the weather was perfect."
-            ),
-            visitIndex: 1
-        )
-        
-        VisitRecord(
-            visit: CityVisit(
-                date: Date().addingTimeInterval(-86400 * 30),
-                note: nil
-            ),
-            visitIndex: 2
-        )
-        
-        VisitRecord(
-            visit: CityVisit(
-                date: Date().addingTimeInterval(-86400 * 365),
-                note: "Second trip here, even better than the first!"
-            ),
-            visitIndex: 3,
-            isLast: true
-        )
-    }
-    .padding()
-    .background(AppColors.background)
-}
 
 #Preview("Restaurant Visits") {
     VStack(spacing: AppSpacing.xl) {

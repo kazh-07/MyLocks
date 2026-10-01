@@ -360,16 +360,25 @@ enum DataSeeder {
             return
         }
         
-        // === CITY VISITS ===
-        // Shanghai - visited multiple times with different date precisions and ranges
+        // === CITY VISITS (all must have a parent CountryVisit) ===
         
-        // Visit 1: Year range (2019-2020) - Demonstrates multi-year stay
+        // CHINA VISITS - Multiple separate trips to China
+        
+        // China Trip 1: Shanghai extended stay (2019-2020)
+        let chinaTrip1 = CountryVisit(
+            country: china,
+            date: Calendar.current.date(from: DateComponents(year: 2019, month: 1, day: 15)) ?? Date(),
+            notes: "Extended stay in Shanghai - year range visit"
+        )
+        context.insert(chinaTrip1)
+        
         let shanghaiVisit1 = CityVisit(
             startYear: 2019,
             endYear: 2020,
             note: "First extended stay in Shanghai! Amazing food scene, loved the Bund area and the night skyline.",
             places: ["The Bund", "Yu Garden", "Shanghai Tower", "Nanjing Road"],
-            city: shanghai
+            city: shanghai,
+            parentCountryVisit: chinaTrip1
         )
         context.insert(shanghaiVisit1)
         
@@ -386,8 +395,15 @@ enum DataSeeder {
         )
         context.insert(shanghaiArrivalFlight)
         
-        // Visit 2: Exact date range (multi-day trip)
+        // China Trip 2: Shanghai business trip
         let tripStart = Date().addingTimeInterval(-86400 * 200)
+        let chinaTrip2 = CountryVisit(
+            country: china,
+            date: tripStart,
+            notes: "Business trip to Shanghai"
+        )
+        context.insert(chinaTrip2)
+        
         let tripEnd = Date().addingTimeInterval(-86400 * 194)  // 6 days later
         let shanghaiVisit2 = CityVisit(
             startDate: tripStart,
@@ -395,7 +411,8 @@ enum DataSeeder {
             companion: "Sarah",
             note: "Back for business. Had the best xiaolongbao at Din Tai Fung. The French Concession is so charming.",
             places: ["French Concession", "Tianzifang", "Xintiandi", "People's Square"],
-            city: shanghai
+            city: shanghai,
+            parentCountryVisit: chinaTrip2
         )
         context.insert(shanghaiVisit2)
         
@@ -412,29 +429,42 @@ enum DataSeeder {
         )
         context.insert(shanghaiArrivalFlight2)
         
-        // Visit 3: Recent trip (summer 2024)
+        // China Trip 3: Shanghai summer vacation (2024)
         let summer2024Start = Calendar.current.date(from: DateComponents(year: 2024, month: 7, day: 15)) ?? Date()
-        let summer2024End = Calendar.current.date(from: DateComponents(year: 2024, month: 7, day: 22)) ?? Date()
+        let chinaTrip3 = CountryVisit(
+            country: china,
+            date: summer2024Start,
+            notes: "Summer 2024 Shanghai trip"
+        )
+        context.insert(chinaTrip3)
         
+        let summer2024End = Calendar.current.date(from: DateComponents(year: 2024, month: 7, day: 22)) ?? Date()
         let shanghaiVisit3 = CityVisit(
             startDate: summer2024Start,
             endDate: summer2024End,
             companion: "Sarah",
             note: "Third visit! Explored more local neighborhoods. Tried authentic Shanghainese cuisine in the old town.",
             places: ["Old Town", "Jing'an Temple", "M50 Art District"],
-            city: shanghai
+            city: shanghai,
+            parentCountryVisit: chinaTrip3
         )
         context.insert(shanghaiVisit3)
         
-        // Beijing - visited multiple times with different precisions
+        // China Trip 4: Beijing business trip (2022)
+        let chinaTrip4 = CountryVisit(
+            country: china,
+            date: Calendar.current.date(from: DateComponents(year: 2022, month: 6, day: 1)) ?? Date(),
+            notes: "Beijing business trip - 2022"
+        )
+        context.insert(chinaTrip4)
         
-        // Visit 1: Single year (2022)
         let beijingVisit1 = CityVisit(
             startYear: 2022,
             endYear: 2022,  // Same year = single year visit
             note: "Business trip, visited Great Wall. The Forbidden City is breathtaking!",
             places: ["Great Wall", "Forbidden City", "Temple of Heaven"],
-            city: beijing
+            city: beijing,
+            parentCountryVisit: chinaTrip4
         )
         context.insert(beijingVisit1)
         
@@ -451,19 +481,34 @@ enum DataSeeder {
         )
         context.insert(beijingArrivalTrain)
         
-        // Visit 2: Single exact date (day trip or short visit)
+        // China Trip 5: Beijing day trip
         let beijingDate = Date().addingTimeInterval(-86400 * 45)
+        let chinaTrip5 = CountryVisit(
+            country: china,
+            date: beijingDate,
+            notes: "Quick Beijing business meeting"
+        )
+        context.insert(chinaTrip5)
+        
         let beijingVisit2 = CityVisit(
             date: beijingDate,  // Single day convenience init
             companion: "Work colleagues",
             note: "Quick business meeting and tried Peking duck at a famous restaurant.",
             places: ["Nanluoguxiang", "798 Art District"],
-            city: beijing
+            city: beijing,
+            parentCountryVisit: chinaTrip5
         )
         context.insert(beijingVisit2)
         
-        // Visit 3: Weekend trip (multi-day exact date range)
+        // China Trip 6: Beijing weekend getaway
         let weekendStart = Date().addingTimeInterval(-86400 * 100)
+        let chinaTrip6 = CountryVisit(
+            country: china,
+            date: weekendStart,
+            notes: "Weekend trip to Beijing with friends"
+        )
+        context.insert(chinaTrip6)
+        
         let weekendEnd = Date().addingTimeInterval(-86400 * 98)  // 2 days later
         let beijingVisit3 = CityVisit(
             startDate: weekendStart,
@@ -471,7 +516,8 @@ enum DataSeeder {
             companion: "Friends",
             note: "Weekend getaway! Walked around hutongs and loved the local vibe.",
             places: ["Summer Palace", "Hutongs", "Lama Temple"],
-            city: beijing
+            city: beijing,
+            parentCountryVisit: chinaTrip6
         )
         context.insert(beijingVisit3)
         
@@ -488,14 +534,23 @@ enum DataSeeder {
         )
         context.insert(beijingArrivalCar)
         
-        // Paris - visited once (year range spanning multiple years)
+        // FRANCE VISIT - Paris extended stay
+        let parisDate = Calendar.current.date(from: DateComponents(year: 2023, month: 1, day: 1)) ?? Date()
+        let franceTrip = CountryVisit(
+            country: france,
+            date: parisDate,
+            notes: "Extended stay in Paris - romantic getaway"
+        )
+        context.insert(franceTrip)
+        
         let parisVisit = CityVisit(
             startYear: 2023,
             endYear: 2024,
             companion: "Partner",
             note: "Romantic extended stay, amazing cafes. Visited the Louvre and walked along Seine.",
             places: ["Louvre Museum", "Eiffel Tower", "Seine River", "Montmartre", "Notre-Dame"],
-            city: paris
+            city: paris,
+            parentCountryVisit: franceTrip
         )
         context.insert(parisVisit)
         
@@ -537,18 +592,40 @@ enum DataSeeder {
             places: ["Times Square", "Central Park", "Statue of Liberty", "Brooklyn Bridge", "Metropolitan Museum", "Broadway"]
         ))
         
-        // === COUNTRY VISITS ===
-        context.insert(CountryVisit(
-            date: Date().addingTimeInterval(-86400 * 400),
-            note: "First trip to China, life-changing experience",
-            country: china
-        ))
+        // === COUNTRY VISITS - Multi-city trip example ===
         
-        context.insert(CountryVisit(
-            date: Date().addingTimeInterval(-86400 * 90),
-            note: "France for anniversary",
-            country: france
-        ))
+        // EXAMPLE: Multi-city country trip - One China visit with multiple city visits (Beijing + Shanghai)
+        let chinaTripDate = Date().addingTimeInterval(-86400 * 60) // ~2 months ago
+        let chinaMultiCityTrip = CountryVisit(
+            country: china,
+            date: chinaTripDate,
+            notes: "Two-week trip across China - visited Beijing and Shanghai"
+        )
+        context.insert(chinaMultiCityTrip)
+        
+        // Beijing visit as part of the China country trip
+        let chinaTripBeijing = CityVisit(
+            startDate: chinaTripDate,
+            endDate: chinaTripDate.addingTimeInterval(86400 * 5), // 5 days in Beijing
+            companion: "Sarah",
+            note: "First leg: Beijing - Great Wall, Forbidden City, and amazing Peking duck!",
+            places: ["Forbidden City", "Great Wall", "Hutongs", "Temple of Heaven"],
+            city: beijing,
+            parentCountryVisit: chinaMultiCityTrip
+        )
+        context.insert(chinaTripBeijing)
+        
+        // Shanghai visit as part of the same China country trip
+        let chinaTripShanghai = CityVisit(
+            startDate: chinaTripDate.addingTimeInterval(86400 * 6), // Started after Beijing
+            endDate: chinaTripDate.addingTimeInterval(86400 * 12), // 6 days in Shanghai
+            companion: "Sarah",
+            note: "Second leg: Shanghai - explored The Bund, French Concession, incredible food scene",
+            places: ["The Bund", "French Concession", "Yu Garden", "Nanjing Road", "Xintiandi"],
+            city: shanghai,
+            parentCountryVisit: chinaMultiCityTrip
+        )
+        context.insert(chinaTripShanghai)
         
         // === COUNTRY WISHLISTS ===
         context.insert(CountryWishlist(
@@ -692,13 +769,13 @@ enum DataSeeder {
         ))
         
         print("✅ Added sample data:")
-        print("   • 6 city visits (Shanghai x3, Beijing x3, Paris)")
-        print("   • 5 transportation records (flights, trains, cars)")
+        print("   • 9+ city visits across 7 country visits (Shanghai x3, Beijing x3, Paris x1, plus multi-city trip)")
+        print("   • 5+ transportation records (flights, trains, cars)")
         print("   • 3 city wishlists (Hong Kong, Tokyo, New York)")
-        print("   • 2 country visits (China, France)")
         print("   • 2 country wishlists (Japan, USA)")
         print("   • ~5 restaurant visits")
         print("   • ~3 restaurant wishlists")
         print("   • 2 events with 1 visit and 1 wishlist")
     }
 }
+

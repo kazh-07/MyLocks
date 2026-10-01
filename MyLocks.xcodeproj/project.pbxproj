@@ -8,13 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		A730235B3069C472005DFC18 /* DatePrecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = A730235A3069C471005DFC18 /* DatePrecision.swift */; };
-		A7629D043068B0A700BE3183 /* WishlistStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7629D033068B0A700BE3183 /* WishlistStatus.swift */; };
 		A7629D183068B2E300BE3183 /* SAMPLE_DATA.md in Resources */ = {isa = PBXBuildFile; fileRef = A7629D173068B2E300BE3183 /* SAMPLE_DATA.md */; };
 		A7BFB8AA3068632100E5BB84 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A7BFB8A93068632100E5BB84 /* Assets.xcassets */; };
 		A7E28CB030681B290018743D /* String+NilIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */; };
 		A7FCD3EE306B0A29001E5DD2 /* Transportation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */; };
 		A7FCD450306B4BDB001E5DD2 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = A7FCD44F306B4BDB001E5DD2 /* .gitignore */; };
 		A7FCD458306B722B001E5DD2 /* CitySortable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD457306B722B001E5DD2 /* CitySortable.swift */; };
+		A7FCD462306DC63C001E5DD2 /* LocationViewMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD461306DC63C001E5DD2 /* LocationViewMode.swift */; };
+		A7FCD466306DC699001E5DD2 /* CountrySortable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD465306DC699001E5DD2 /* CountrySortable.swift */; };
+		A7FCD468306DC6E8001E5DD2 /* Searchable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD467306DC6E8001E5DD2 /* Searchable.swift */; };
+		A7FCD46A306DC718001E5DD2 /* WishlistStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FCD469306DC718001E5DD2 /* WishlistStatus.swift */; };
 		SF01 /* MyLocksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1 /* MyLocksApp.swift */; };
 		SF02 /* Country.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2 /* Country.swift */; };
 		SF04 /* City.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4 /* City.swift */; };
@@ -27,13 +30,16 @@
 
 /* Begin PBXFileReference section */
 		A730235A3069C471005DFC18 /* DatePrecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePrecision.swift; sourceTree = "<group>"; };
-		A7629D033068B0A700BE3183 /* WishlistStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishlistStatus.swift; sourceTree = "<group>"; };
 		A7629D173068B2E300BE3183 /* SAMPLE_DATA.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SAMPLE_DATA.md; sourceTree = "<group>"; };
 		A7BFB8A93068632100E5BB84 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A7E28CAF30681B290018743D /* String+NilIfEmpty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+NilIfEmpty.swift"; sourceTree = "<group>"; };
 		A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transportation.swift; sourceTree = "<group>"; };
 		A7FCD44F306B4BDB001E5DD2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		A7FCD457306B722B001E5DD2 /* CitySortable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitySortable.swift; sourceTree = "<group>"; };
+		A7FCD461306DC63C001E5DD2 /* LocationViewMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationViewMode.swift; sourceTree = "<group>"; };
+		A7FCD465306DC699001E5DD2 /* CountrySortable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountrySortable.swift; sourceTree = "<group>"; };
+		A7FCD467306DC6E8001E5DD2 /* Searchable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Searchable.swift; sourceTree = "<group>"; };
+		A7FCD469306DC718001E5DD2 /* WishlistStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishlistStatus.swift; sourceTree = "<group>"; };
 		B1 /* MyLocksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyLocksApp.swift; sourceTree = "<group>"; };
 		B10 /* ModelContainerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerProvider.swift; sourceTree = "<group>"; };
 		B16 /* AddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddView.swift; sourceTree = "<group>"; };
@@ -62,7 +68,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A7BFB86E30683DED00E5BB84 /* Home */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Home; sourceTree = "<group>"; };
 		A7BFB86F30683DFA00E5BB84 /* Michelin */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Michelin; sourceTree = "<group>"; };
-		A7BFB87030683E0400E5BB84 /* Cities */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Cities; sourceTree = "<group>"; };
+		A7BFB87030683E0400E5BB84 /* Locations */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Locations; sourceTree = "<group>"; };
 		A7BFB87130683E0F00E5BB84 /* Events */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Events; sourceTree = "<group>"; };
 		A7BFB87230683E1E00E5BB84 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
 		A7BFB87330683E2E00E5BB84 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
@@ -124,11 +130,14 @@
 				B4 /* City.swift */,
 				B6 /* MichelinRestaurant.swift */,
 				B8 /* Event.swift */,
-				A7629D033068B0A700BE3183 /* WishlistStatus.swift */,
 				A7FCD457306B722B001E5DD2 /* CitySortable.swift */,
 				B10 /* ModelContainerProvider.swift */,
 				A7FCD3ED306B0A29001E5DD2 /* Transportation.swift */,
+				A7FCD465306DC699001E5DD2 /* CountrySortable.swift */,
+				A7FCD469306DC718001E5DD2 /* WishlistStatus.swift */,
 				A730235A3069C471005DFC18 /* DatePrecision.swift */,
+				A7FCD461306DC63C001E5DD2 /* LocationViewMode.swift */,
+				A7FCD467306DC6E8001E5DD2 /* Searchable.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -138,7 +147,7 @@
 			children = (
 				A7BFB87230683E1E00E5BB84 /* Shared */,
 				A7BFB87130683E0F00E5BB84 /* Events */,
-				A7BFB87030683E0400E5BB84 /* Cities */,
+				A7BFB87030683E0400E5BB84 /* Locations */,
 				A7BFB86F30683DFA00E5BB84 /* Michelin */,
 				A7BFB86E30683DED00E5BB84 /* Home */,
 				B16 /* AddView.swift */,
@@ -166,7 +175,7 @@
 			fileSystemSynchronizedGroups = (
 				A7BFB86E30683DED00E5BB84 /* Home */,
 				A7BFB86F30683DFA00E5BB84 /* Michelin */,
-				A7BFB87030683E0400E5BB84 /* Cities */,
+				A7BFB87030683E0400E5BB84 /* Locations */,
 				A7BFB87130683E0F00E5BB84 /* Events */,
 				A7BFB87230683E1E00E5BB84 /* Shared */,
 				A7BFB87330683E2E00E5BB84 /* Components */,
@@ -229,11 +238,14 @@
 				SF04 /* City.swift in Sources */,
 				A730235B3069C472005DFC18 /* DatePrecision.swift in Sources */,
 				A7FCD458306B722B001E5DD2 /* CitySortable.swift in Sources */,
+				A7FCD462306DC63C001E5DD2 /* LocationViewMode.swift in Sources */,
+				A7FCD46A306DC718001E5DD2 /* WishlistStatus.swift in Sources */,
+				A7FCD466306DC699001E5DD2 /* CountrySortable.swift in Sources */,
 				A7E28CB030681B290018743D /* String+NilIfEmpty.swift in Sources */,
 				SF06 /* MichelinRestaurant.swift in Sources */,
 				SF08 /* Event.swift in Sources */,
-				A7629D043068B0A700BE3183 /* WishlistStatus.swift in Sources */,
 				SF10 /* ModelContainerProvider.swift in Sources */,
+				A7FCD468306DC6E8001E5DD2 /* Searchable.swift in Sources */,
 				SF16 /* AddView.swift in Sources */,
 				SF17 /* RootView.swift in Sources */,
 				A7FCD3EE306B0A29001E5DD2 /* Transportation.swift in Sources */,

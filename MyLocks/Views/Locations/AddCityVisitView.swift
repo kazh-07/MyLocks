@@ -257,6 +257,19 @@ struct AddCityVisitView: View {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
         
+        // REQUIRED: Create a parent CountryVisit first
+        guard let country = city.country else {
+            print("Error: City has no country")
+            return
+        }
+        
+        let countryVisit = CountryVisit(
+            country: country,
+            date: precision == .exact ? startDate : Calendar.current.date(from: DateComponents(year: startYear, month: 1, day: 1)) ?? Date(),
+            notes: nil  // Country visit notes can be added separately
+        )
+        modelContext.insert(countryVisit)
+        
         // Create new visit based on precision and range settings
         let newVisit: CityVisit
         
@@ -269,7 +282,8 @@ struct AddCityVisitView: View {
                     companion: companion.isEmpty ? nil : companion,
                     note: notes.isEmpty ? nil : notes,
                     places: placesArray.isEmpty ? nil : placesArray,
-                    city: city
+                    city: city,
+                    parentCountryVisit: countryVisit
                 )
             } else {
                 newVisit = CityVisit(
@@ -277,7 +291,8 @@ struct AddCityVisitView: View {
                     companion: companion.isEmpty ? nil : companion,
                     note: notes.isEmpty ? nil : notes,
                     places: placesArray.isEmpty ? nil : placesArray,
-                    city: city
+                    city: city,
+                    parentCountryVisit: countryVisit
                 )
             }
             
@@ -288,7 +303,8 @@ struct AddCityVisitView: View {
                 companion: companion.isEmpty ? nil : companion,
                 note: notes.isEmpty ? nil : notes,
                 places: placesArray.isEmpty ? nil : placesArray,
-                city: city
+                city: city,
+                parentCountryVisit: countryVisit
             )
         }
         

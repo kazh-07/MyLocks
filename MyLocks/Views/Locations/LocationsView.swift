@@ -12,15 +12,25 @@ private enum MapDisplayMode {
 // Toggle this to switch between map modes
 private let currentMapMode: MapDisplayMode = .nativeMap
 
-struct CitiesView: View {
+// MARK: - View Mode
+
+enum LocationsViewMode {
+    case map
+    case list
+}
+
+struct LocationsView: View {
     @Environment(\.tabBarVisible) private var tabBarVisible
     @Query(sort: \City.name) private var allCities: [City]
+    @Query(sort: \Country.name) private var allCountries: [Country]
     @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     
+    @State private var viewMode: LocationsViewMode = .map
     @State private var cameraPosition: MapCameraPosition = .automatic
-    @State private var showingAllCities = false
     @State private var selectedCity: City?
     @State private var showingCityDetail = false
+    @State private var selectedCountry: Country?
+    @State private var showingCountryDetail = false
     @State private var searchText = ""
     @State private var isSearching = false
     
@@ -83,58 +93,71 @@ struct CitiesView: View {
                         SearchBar(placeholder: "Search cities", text: $searchText)
                     }
                     
-                    // Title
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text(isSearching ? "Search Results" : "Cities")
-                            .font(AppFonts.title)
-                            .foregroundStyle(AppColors.titleText)
-                        
-                        Text("\(visitedCities.count) \(visitedCities.count == 1 ? "city" : "cities")")
-                            .font(AppFonts.body)
-                            .foregroundStyle(AppColors.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, AppSpacing.pageHorizontal)
-                    .padding(.top, AppSpacing.sectionTop)
-                    .padding(.bottom, AppSpacing.sectionBottom)
-                    
-                    // REFACTORED: Map view or empty state
-                    if visitedCities.isEmpty && isSearching && !searchText.isEmpty {
-                        EmptySearchState(itemType: "cities")
-                            .frame(height: 300)
-                    } else {
-                        Group {
-                            switch currentMapMode {
-                            case .customWorldMap:
-                                customWorldMapView
-                            case .nativeMap:
-                                nativeMapView
+                    // View mode toggle (Map/List)
+                    HStack(spacing: 0) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewMode = .map
                             }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "map")
+                                    .font(.system(size: 14, weight: .medium))
+                                Text("Map")
+                                    .font(.system(size: 15, weight: .medium))
+                            }
+                            .foregroundStyle(viewMode == .map ? AppColors.label : AppColors.tertiaryLabel)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(
+                                viewMode == .map ? 
+                                    AnyView(RoundedRectangle(cornerRadius: 8).fill(AppColors.cardBackground)) : 
+                                    AnyView(Color.clear)
+                            )
                         }
-                        .frame(maxHeight: 600)
-                    }
-                    
-                    // View all cities button
-                    Button {
-                        showingAllCities = true
-                    } label: {
-                        HStack(spacing: AppSpacing.md) {
-                            Text("View all cities")
-                                .font(CityDetailStyles.addButtonText)
-                            
-                            Image(systemName: "chevron.right")
-                                .font(CityDetailStyles.addButtonIcon)
+                        .buttonStyle(.plain)
+                        
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewMode = .list
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "list.bullet")
+                                    .font(.system(size: 14, weight: .medium))
+                                Text("List")
+                                    .font(.system(size: 15, weight: .medium))
+                            }
+                            .foregroundStyle(viewMode == .list ? AppColors.label : AppColors.tertiaryLabel)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(
+                                viewMode == .list ? 
+                                    AnyView(RoundedRectangle(cornerRadius: 8).fill(AppColors.cardBackground)) : 
+                                    AnyView(Color.clear)
+                            )
                         }
-                        .foregroundStyle(AppColors.primaryText)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: AppDimensions.buttonHeight)
-                        .background(
-                            RoundedRectangle(cornerRadius: AppDimensions.radiusLG)
-                                .fill(AppColors.cardBackground)
-                        )
+                        .buttonStyle(.plain)
                     }
-                    .padding(.top, 16)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(AppColors.background)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(AppColors.cardBackground, lineWidth: 1)
+                            )
+                    )
                     .padding(.horizontal, AppSpacing.pageHorizontal)
+                    .padding(.bottom, AppSpacing.sm)
+                    
+                    // Content based on view mode
+                    if viewMode == .map {
+                        mapViewContent
+                    } else {
+                        listViewContent
+                    }
                 }
             }
             .navigationBarHidden(true)
@@ -143,13 +166,9 @@ struct CitiesView: View {
                     CityDetailView(city: city)
                 }
             }
-            .fullScreenCover(isPresented: $showingAllCities) {
-                AllCitiesListView(cities: allCities)
-            }
-            .onChange(of: showingAllCities) { oldValue, newValue in
-                // When All Cities view is dismissed, ensure tab bar stays hidden
-                if !newValue {
-                    tabBarVisible.wrappedValue = false
+            .navigationDestination(isPresented: $showingCountryDetail) {
+                if let country = selectedCountry {
+                    CountryDetailView(country: country)
                 }
             }
             .onAppear {
@@ -157,6 +176,52 @@ struct CitiesView: View {
             }
             .animation(.easeInOut(duration: 0.2), value: isSearching)
         }
+    }
+    
+    // MARK: - Map View Content
+    
+    @ViewBuilder
+    private var mapViewContent: some View {
+        VStack(spacing: 0) {
+            // Title
+            Text(isSearching ? "Search Results" : "\(visitedCities.count) \(visitedCities.count == 1 ? "city" : "cities")")
+                .font(AppFonts.title)
+                .foregroundStyle(AppColors.titleText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, AppSpacing.pageHorizontal)
+                .padding(.top, AppSpacing.sectionTop)
+                .padding(.bottom, AppSpacing.sectionBottom)
+            
+            // REFACTORED: Map view or empty state
+            if visitedCities.isEmpty && isSearching && !searchText.isEmpty {
+                EmptySearchState(itemType: "cities")
+                    .frame(height: 300)
+            } else {
+                Group {
+                    switch currentMapMode {
+                    case .customWorldMap:
+                        customWorldMapView
+                    case .nativeMap:
+                        nativeMapView
+                    }
+                }
+                .frame(maxHeight: 600)
+            }
+        }
+    }
+    
+    // MARK: - List View Content
+    
+    @ViewBuilder
+    private var listViewContent: some View {
+        LocationsListContent(
+            cities: allCities,
+            countries: allCountries,
+            selectedCity: $selectedCity,
+            selectedCountry: $selectedCountry,
+            showingCityDetail: $showingCityDetail,
+            showingCountryDetail: $showingCountryDetail
+        )
     }
     
     // MARK: - Map Views
@@ -587,3 +652,162 @@ extension Array where Element == MichelinRestaurant {
     }
 }
 
+
+
+// MARK: - Locations List Content
+
+private struct LocationsListContent: View {
+    @AppStorage("selectedLanguage") private var selectedLanguage = "English"
+    
+    let cities: [City]
+    let countries: [Country]
+    
+    @Binding var selectedCity: City?
+    @Binding var selectedCountry: Country?
+    @Binding var showingCityDetail: Bool
+    @Binding var showingCountryDetail: Bool
+    
+    @State private var locationViewMode: LocationViewMode = .cities
+    @State private var selectedTab: WishlistStatus? = nil
+    
+    // MARK: - Filtering
+    
+    private var tabFilteredCities: [City] {
+        guard let tab = selectedTab else {
+            return cities
+        }
+        
+        let filtered = cities.filter { $0.wishlistStatus == tab }
+        
+        switch tab {
+        case .visited:
+            return City.sortedByRecentVisit(filtered)
+        case .wishlisted:
+            return City.sortedByWishlistPriority(filtered)
+        case .notVisited:
+            return filtered
+        }
+    }
+    
+    private var tabFilteredCountries: [Country] {
+        guard let tab = selectedTab else {
+            return countries
+        }
+        
+        let filtered = countries.filter { $0.wishlistStatus == tab }
+        
+        switch tab {
+        case .visited:
+            return Country.sortedByRecentVisit(filtered)
+        case .wishlisted:
+            return Country.sortedByWishlistPriority(filtered)
+        case .notVisited:
+            return filtered
+        }
+    }
+    
+    private var currentCount: Int {
+        locationViewMode == .cities ? tabFilteredCities.count : tabFilteredCountries.count
+    }
+    
+    private var itemTypeLabel: String {
+        switch locationViewMode {
+        case .cities:
+            return currentCount == 1 ? "city" : "cities"
+        case .countries:
+            return currentCount == 1 ? "country" : "countries"
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Title with inline mode menu
+            HStack(spacing: 4) {
+                Text("\(currentCount)")
+                    .font(AppFonts.title)
+                    .foregroundStyle(AppColors.titleText)
+                
+                Menu {
+                    Button {
+                        locationViewMode = .cities
+                    } label: {
+                        HStack {
+                            if locationViewMode == .cities {
+                                Image(systemName: "checkmark")
+                            }
+                            Text("Cities")
+                        }
+                    }
+                    Button {
+                        locationViewMode = .countries
+                    } label: {
+                        HStack {
+                            if locationViewMode == .countries {
+                                Image(systemName: "checkmark")
+                            }
+                            Text("Countries")
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(itemTypeLabel)
+                            .font(AppFonts.title)
+                            .foregroundStyle(AppColors.titleText)
+                        Image(systemName: "chevron.down")
+                            .font(AppFonts.iconSmall)
+                            .foregroundStyle(AppColors.tertiaryLabel)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .menuStyle(.automatic)
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, AppSpacing.pageHorizontal)
+            .padding(.top, AppSpacing.sectionTop)
+            .padding(.bottom, AppSpacing.sectionBottom)
+            
+            // Status tab bar
+            OptionalTabBar(
+                tabs: [
+                    ("Visited", .visited),
+                    ("Wishlist", .wishlisted),
+                    ("Not Yet", .notVisited),
+                    ("All", nil)
+                ],
+                selectedTab: $selectedTab,
+                dividerBottomPadding: AppSpacing.md
+            )
+            
+            // Content
+            ScrollView {
+                if locationViewMode == .cities {
+                    FlowLayout(spacing: AppSpacing.md) {
+                        ForEach(tabFilteredCities) { city in
+                            CityPill(city: city, visited: city.isVisited) {
+                                selectedCity = city
+                                showingCityDetail = true
+                            }
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.pageHorizontal)
+                    .padding(.top, AppSpacing.md)
+                    .padding(.bottom, AppSpacing.contentBottom)
+                } else {
+                    FlowLayout(spacing: AppSpacing.md) {
+                        ForEach(tabFilteredCountries) { country in
+                            CountryPill(country: country, visited: country.isVisited) {
+                                selectedCountry = country
+                                showingCountryDetail = true
+                            }
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.pageHorizontal)
+                    .padding(.top, AppSpacing.md)
+                    .padding(.bottom, AppSpacing.contentBottom)
+                }
+            }
+        }
+    }
+}

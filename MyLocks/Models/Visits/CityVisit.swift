@@ -24,11 +24,15 @@ final class CityVisit {
     // Relationship to transportation records
     @Relationship(deleteRule: .cascade, inverse: \Transportation.cityVisit)
     var transportations: [Transportation]?
+    
+    // REQUIRED: Parent country visit - every city visit must be part of a country trip
+    @Relationship(inverse: \CountryVisit.cityVisits)
+    var parentCountryVisit: CountryVisit
 
     // MARK: - Convenience Initializers
     
     /// Creates a single-day exact date visit
-    init(date: Date, companion: String? = nil, note: String? = nil, places: [String]? = nil, city: City? = nil) {
+    init(date: Date, companion: String? = nil, note: String? = nil, places: [String]? = nil, city: City? = nil, parentCountryVisit: CountryVisit) {
         self.id = UUID()
         self.datePrecision = .exact
         self.startDate = date
@@ -37,10 +41,11 @@ final class CityVisit {
         self.note = note
         self.places = places
         self.city = city
+        self.parentCountryVisit = parentCountryVisit
     }
     
     /// Creates a date range visit (exact dates)
-    init(startDate: Date, endDate: Date, companion: String? = nil, note: String? = nil, places: [String]? = nil, city: City? = nil) {
+    init(startDate: Date, endDate: Date, companion: String? = nil, note: String? = nil, places: [String]? = nil, city: City? = nil, parentCountryVisit: CountryVisit) {
         self.id = UUID()
         self.datePrecision = .exact
         self.startDate = startDate
@@ -49,10 +54,11 @@ final class CityVisit {
         self.note = note
         self.places = places
         self.city = city
+        self.parentCountryVisit = parentCountryVisit
     }
     
     /// Creates a year or year range visit
-    init(startYear: Int, endYear: Int? = nil, companion: String? = nil, note: String? = nil, places: [String]? = nil, city: City? = nil) {
+    init(startYear: Int, endYear: Int? = nil, companion: String? = nil, note: String? = nil, places: [String]? = nil, city: City? = nil, parentCountryVisit: CountryVisit) {
         self.id = UUID()
         self.datePrecision = .year
         self.startYear = startYear
@@ -61,6 +67,7 @@ final class CityVisit {
         self.note = note
         self.places = places
         self.city = city
+        self.parentCountryVisit = parentCountryVisit
     }
     
     // MARK: - Display Properties
@@ -231,3 +238,4 @@ private extension TransportMode {
         }
     }
 }
+

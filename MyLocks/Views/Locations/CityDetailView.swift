@@ -15,7 +15,20 @@ struct CityDetailView: View {
     
     private func deleteVisit(_ visit: CityVisit) {
         withAnimation {
+            // Get the parent country visit before deletion
+            let parentCountryVisit = visit.parentCountryVisit
+            
+            // Check if this is the only city visit in the parent country visit
+            // We check this BEFORE deleting the city visit
+            let shouldDeleteParent = parentCountryVisit.cityVisits.count == 1
+            
+            // Delete the city visit
             modelContext.delete(visit)
+            
+            // If this was the only city visit, delete the parent country visit as well
+            if shouldDeleteParent {
+                modelContext.delete(parentCountryVisit)
+            }
             
             // Save the context to persist the deletion
             do {
@@ -23,6 +36,42 @@ struct CityDetailView: View {
             } catch {
                 print("Error deleting visit: \(error)")
             }
+        }
+    }
+    
+    // MARK: - Wishlist Toggle
+    
+    private func toggleWishlist() {
+        if city.isWishlisted {
+            // Remove wishlist (treating as boolean presence)
+            if let wishlist = city.wishlists.first {
+                modelContext.delete(wishlist)
+            }
+        } else {
+            // Add a simple wishlist entry
+            let wishlist = CityWishlist(
+                city: city,
+                note: nil,
+                priority: nil,
+                places: nil
+            )
+            modelContext.insert(wishlist)
+            
+            // Automatically wishlist the parent country if not already wishlisted or visited
+            if let country = city.country, !country.isWishlisted && !country.isVisited {
+                let countryWishlist = CountryWishlist(
+                    country: country,
+                    note: nil,
+                    priority: nil
+                )
+                modelContext.insert(countryWishlist)
+            }
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error toggling wishlist: \(error)")
         }
     }
     
@@ -37,12 +86,27 @@ struct CityDetailView: View {
                 VStack(alignment: .leading, spacing: AppSpacing.xxl) {
                     // City title and info
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
-                        HStack {
+                        HStack(spacing: AppSpacing.md) {
                             Text(city.localizedName(language: selectedLanguage))
                                 .font(AppFonts.title)
                                 .foregroundStyle(AppColors.titleText)
                             
                             Spacer()
+                            
+                            // Show heart toggle ONLY for not-visited cities
+                            if !city.isVisited {
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        toggleWishlist()
+                                    }
+                                }) {
+                                    Image(systemName: city.isWishlisted ? "heart.fill" : "heart")
+                                        .font(AppFonts.icon)
+                                        .foregroundStyle(city.isWishlisted ? AppColors.accent : AppColors.icon)
+                                        .contentTransition(.symbolEffect(.replace))
+                                }
+                                .buttonStyle(.plain)
+                            }
                             
                             if city.isVisited {
                                 VisitedPill(visitCount: city.visits.count)
@@ -245,6 +309,9 @@ struct CityDetailView: View {
         .navigationBarHidden(true)
         .sheet(isPresented: $showingAddVisit) {
             AddCityVisitView(city: city)
+        }
+        .sheet(isPresented: $showingAddPlaces) {
+            AddCityPlacesView(city: city)
         }
         .onAppear {
             tabBarVisible.wrappedValue = false

@@ -15,7 +15,7 @@ extension EnvironmentValues {
 
 struct RootView: View {
     enum Tab: Hashable {
-        case home, cities, add, michelin, events
+        case home, locations, add, michelin, events
     }
 
     @State private var selectedTab: Tab = .home
@@ -27,7 +27,7 @@ struct RootView: View {
             Group {
                 switch selectedTab {
                 case .home: HomeView()
-                case .cities: CitiesView()
+                case .locations: LocationsView()
                 case .add: HomeView()
                 case .michelin: MichelinView()
                 case .events: EventsView()
@@ -63,7 +63,7 @@ private struct CustomTabBar: View {
     var body: some View {
         HStack(spacing: 0) {
             tabButton(.home, title: "Home", systemImage: "house")
-            tabButton(.cities, title: "Cities", systemImage: "mappin")
+            tabButton(.locations, title: "Locations", systemImage: "mappin")
 
             Button(action: onAdd) {
                 Image(systemName: "plus")
@@ -95,8 +95,8 @@ private struct CustomTabBar: View {
     ) -> some View {
         Button {
             selectedTab = tab
-            // Hide tab bar when navigating to Cities view, show for other tabs
-            isTabBarVisible = (tab != .cities)
+            // Hide tab bar when navigating to Locations view, show for other tabs
+            isTabBarVisible = (tab != .locations)
         } label: {
             VStack(spacing: AppSpacing.sm) {
                 Image(systemName: systemImage)
